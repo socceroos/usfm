@@ -19,13 +19,13 @@ instruction given here.
 
 1. Install [Go
 compiler](http://muthukadan.net/golang/an-introduction-to-go-programming.html)
-2. Run this command to get source code: `go get github.com/baijum/usfm`
+2. Run this command to get source code: `go get github.com/socceroos/usfm`
    ([Git](http://git-scm.com/) is a prerequisite)
 
-The code will be available under `$GOPATH/src/github.com/baijum/usfm`
+The code will be available under `$GOPATH/src/github.com/socceroos/usfm`
 You will also a get an executable binary under `$GOPATH/bin/usfm`.
 
-You can fork the project from [Github](https://github.com/baijum/usfm)
+You can fork the project from the original [Github](https://github.com/baijum/usfm) project
 and push your changes there.  Later you can send pull request with
 your changes.  Before sending the pull request, make sure the tests
 are running locally using this command:
