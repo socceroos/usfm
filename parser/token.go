@@ -28,6 +28,9 @@ const (
 	// MarkerV represents '\v' marker
 	MarkerV
 
+	// MarkerW represents '\w' marker for wordlist/glossary/dictionary
+	MarkerW
+
 	// Number represents a number (verse, chapter)
 	Number
 

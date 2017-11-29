@@ -3,6 +3,7 @@ package parser
 import (
 	"fmt"
 	"io"
+	"log"
 )
 
 // Parser represents a parser.
@@ -22,6 +23,7 @@ func NewParser(r io.Reader) *Parser {
 
 // Parse parses a USFM formatted book content
 func (p *Parser) Parse() (*Content, error) {
+	log.Printf("Scanning for book...")
 	book := &Content{}
 	book.Type = "book"
 	for {
@@ -97,10 +99,20 @@ func (p *Parser) Parse() (*Content, error) {
 				child.Value = lit
 				marker.Children = append(marker.Children, child)
 				for {
+					log.Printf("Scanning for Verse children...")
 					tok, lit = p.scanIgnoreWhitespace()
-					if !(tok == Text || tok == Number) {
-						p.unscan()
-						break
+					//if !(tok == Text || tok == Number || tok == MarkerW) {
+					//	log.Printf("Invalid child token: %v", tok)
+					//	p.unscan()
+					//	break
+					//} else if tok == MarkerW {
+					if tok == MarkerW {
+						childW := &Content{}
+						childW.Type = "marker"
+						childW.Value = lit
+						marker.Children = append(marker.Children, childW)
+						for {
+						}
 					} else {
 						child := &Content{}
 						child.Type = "text"

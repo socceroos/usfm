@@ -50,6 +50,9 @@ func (s *Scanner) Scan() (tok Token, lit string) {
 	} else if unicode.IsDigit(ch) {
 		s.unread()
 		return s.scanNumber()
+	} else if isPipe(ch) {
+		s.unread()
+		return s.scanCitation()
 	}
 
 	switch ch {
@@ -96,6 +99,8 @@ func (s *Scanner) scanMarker() (tok Token, lit string) {
 		return MarkerC, buf.String()
 	case `\V`:
 		return MarkerV, buf.String()
+	case `\W`:
+		return MarkerW, buf.String()
 	}
 
 	return Illegal, buf.String()
@@ -122,6 +127,28 @@ func (s *Scanner) scanWhitespace() (tok Token, lit string) {
 	}
 
 	return Whitespace, buf.String()
+}
+
+// scanCitation consumes the current rune and all contiguous runes until it hits the next Marker.
+func (s *Scanner) scanCitation() (tok Token, lit string) {
+	// Create a buffer and read the current character into it.
+	var buf bytes.Buffer
+	buf.WriteRune(s.read())
+
+	// Read every subsequent character into the buffer.
+	// Markers and EOF will cause the loop to exit.
+	for {
+		if ch := s.read(); ch == eof {
+			break
+		} else if isBackslash(ch) {
+			s.unread()
+			break
+		} else {
+			buf.WriteRune(ch)
+		}
+	}
+
+	return Citation, buf.String()
 }
 
 // scanText consumes the current rune and all contiguous ident runes.
@@ -175,6 +202,9 @@ func isLetter(ch rune) bool {
 
 // isBackslash returns true if the rune is backslash (\)
 func isBackslash(ch rune) bool { return ch == '\\' }
+
+// isPipe returns true if the rune is a Vertical Line or Pipe (|)
+func isPipe(ch rune) bool { return ch == '|' }
 
 // eof represents a marker rune for the end of the reader.
 var eof = rune(0)

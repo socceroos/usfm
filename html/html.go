@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/baijum/usfm/parser"
+	"github.com/socceroos/usfm/parser"
 )
 
-// New HTML renderer
-func New(o Options, r io.Reader) Renderer {
+// NewRenderer returns a HTML renderer
+func NewRenderer(o Options, r io.Reader) Renderer {
 	html := &HTML{}
 	html.usfmParser = parser.NewParser(r)
 	return html
