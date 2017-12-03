@@ -28,8 +28,26 @@ const (
 	// MarkerV represents '\v' marker
 	MarkerV
 
+	// MarkerP represents '\p' marker for paragraphs
+	MarkerP
+
+	// MarkerS represents '\s#' marker for section headings
+	MarkerS
+
 	// MarkerW represents '\w' marker for wordlist/glossary/dictionary
 	MarkerW
+
+	// EndMarkerW represents '\w*' marker for wordlist/glossary/dictionary
+	EndMarkerW
+
+	// MarkerAdd represents '\add' marker for words added by the translator for clarity
+	MarkerAdd
+
+	// EndMarkerAdd represents '\add*' marker for words added by the translator for clarity
+	EndMarkerAdd
+
+	// Citation represents the citation/dict/thesaurus definitions in the \w marker
+	Citation
 
 	// Number represents a number (verse, chapter)
 	Number

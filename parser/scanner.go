@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"io"
+	"log"
 	"strings"
 	"unicode"
 )
@@ -41,7 +42,7 @@ func (s *Scanner) Scan() (tok Token, lit string) {
 	if unicode.IsSpace(ch) {
 		s.unread()
 		return s.scanWhitespace()
-	} else if isBackslash(ch) {
+	} else if isBackslash(ch) || ch == 0x00B6 {
 		s.unread()
 		return s.scanMarker()
 	} else if isLetter(ch) {
@@ -78,6 +79,9 @@ func (s *Scanner) scanMarker() (tok Token, lit string) {
 		} else if unicode.IsSpace(ch) {
 			s.unread()
 			break
+		} else if ch == 0x002A {
+			buf.WriteRune(ch)
+			break
 		} else {
 			buf.WriteRune(ch)
 		}
@@ -87,6 +91,8 @@ func (s *Scanner) scanMarker() (tok Token, lit string) {
 			return Illegal, buf.String()
 		}
 	}
+
+	log.Printf("Scan Marker: %v", strings.ToUpper(buf.String()))
 
 	switch strings.ToUpper(buf.String()) {
 	case `\ID`:
@@ -99,8 +105,20 @@ func (s *Scanner) scanMarker() (tok Token, lit string) {
 		return MarkerC, buf.String()
 	case `\V`:
 		return MarkerV, buf.String()
+	case `\P`, `¶`:
+		return MarkerP, buf.String()
+	case `\S`, `\S1`:
+		return MarkerS, buf.String()
 	case `\W`:
 		return MarkerW, buf.String()
+	case `\W*`:
+		return EndMarkerW, buf.String()
+	case `\ADD`:
+		return MarkerAdd, buf.String()
+	case `\ADD*`:
+		return EndMarkerAdd, buf.String()
+	case `|`:
+		return Citation, buf.String()
 	}
 
 	return Illegal, buf.String()
@@ -161,6 +179,9 @@ func (s *Scanner) scanText() (tok Token, lit string) {
 	// Non-letter, non-digit characters and EOF will cause the loop to exit.
 	for {
 		if ch := s.read(); ch == eof {
+			break
+		} else if isBackslash(ch) {
+			s.unread()
 			break
 		} else if !unicode.IsLetter(ch) && !unicode.IsPunct(ch) && !unicode.IsDigit(ch) {
 			s.unread()
