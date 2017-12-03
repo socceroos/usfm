@@ -40,6 +40,12 @@ const (
 	// EndMarkerW represents '\w*' marker for wordlist/glossary/dictionary
 	EndMarkerW
 
+	// MarkerWJ represents '\wj' marker for Jesus' words
+	MarkerWJ
+
+	// EndMarkerWJ represents '\wj*' marker for Jesus' words
+	EndMarkerWJ
+
 	// MarkerAdd represents '\add' marker for words added by the translator for clarity
 	MarkerAdd
 
