@@ -30,7 +30,7 @@ func (h *JSON) Render(w io.Writer) error {
 		return err
 	}
 
-	converted := convert(content)
+	converted := convertV2(content)
 
 	jsonEncoder := json.NewEncoder(w)
 	jsonEncoder.SetIndent(" ", "  ")
@@ -58,19 +58,8 @@ type Bible struct {
 	Books       map[int]*Book
 }
 
-type OutputFormat struct {
-	Books map[int]struct {
-		Title    string
-		Chapters map[int]struct {
-			Verses map[int]struct {
-				Text string
-			}
-		}
-	}
-}
-
-func convert(in *parser.Content) interface{} {
-	log.Print("\n\n\n\n\n\n\n\nConverting format to Carry JSON...\n\n")
+func convertV1(in *parser.Content) interface{} {
+	log.Print("\n\n\n\n\n\n\n\nConverting format to Carry JSON v1...\n\n")
 	out := Bible{}
 	out.Books = make(map[int]*Book)
 	book := Book{}
@@ -106,6 +95,9 @@ func convert(in *parser.Content) interface{} {
 					if v.Value == "\\c" {
 						break
 					}
+					if v.Value == "\\wj" {
+						verseText += `<span class="jesus-words">`
+					}
 					for _, wl := range v.Children {
 						if wl.Type == "text" {
 							if !unicode.IsPunct([]rune(wl.Value)[0]) {
@@ -113,6 +105,9 @@ func convert(in *parser.Content) interface{} {
 							}
 							verseText += wl.Value
 						}
+					}
+					if v.Value == "\\wj" {
+						verseText += `</span>`
 					}
 				} else if v.Type == "versenumber" {
 					var err error
@@ -131,6 +126,105 @@ func convert(in *parser.Content) interface{} {
 			log.Printf("Chapter: %v", chapter)
 			verseText = strings.TrimSpace(verseText)
 			out.Books[0].Chapters[chapter].Verses[verse] = &verseText
+		}
+	}
+
+	return out
+}
+
+type Translation struct {
+	ShortCode     string
+	Name          string
+	Revision      string
+	DatePublished string
+}
+
+type Item struct {
+	Type    string
+	Key     int
+	RootMap []int
+	BCV     string
+	Text    string
+}
+
+type CarryFormat struct {
+	Translation Translation
+	BibleStream []Item
+}
+
+func convertV2(in *parser.Content) interface{} {
+	log.Print("\n\n\n\n\n\n\n\nConverting format to Carry JSON v2...\n\n")
+	out := CarryFormat{}
+	out.Translation = Translation{ShortCode: "web", Name: "World English Bible", Revision: "1", DatePublished: "1997"}
+
+	chapter := 0
+	verse := 0
+	ch := Item{}
+	book := Item{}
+	for i, row := range in.Children {
+		if row.Value == "\\c" {
+			var err error
+			chapter, err = strconv.Atoi(row.Children[0].Value)
+			if err != nil {
+				log.Printf("Error: %v", err)
+				chapter++
+			}
+			chText := `<span class="chapter">` + row.Children[0].Value + `</span>`
+			ch = Item{Type: "chapter", Key: i, BCV: book.BCV + "." + row.Children[0].Value, Text: chText}
+			out.BibleStream = append(out.BibleStream, ch)
+		} else if row.Value == "\\h" {
+			cHead := `<span class="book">`
+			for _, v := range row.Children {
+				if v.Type == "heading" {
+					cHead += v.Value
+				}
+			}
+			cHead += "</span>"
+			book = Item{Type: "book", Key: i, BCV: in.Value, Text: cHead}
+			out.BibleStream = append(out.BibleStream, book)
+		} else if row.Value == "\\p" {
+			pText := "<br><br>"
+			p := Item{Type: "paragraph", Key: i, Text: pText}
+			out.BibleStream = append(out.BibleStream, p)
+		} else if row.Value == "\\v" {
+			verse++
+			var verseText string
+			for _, v := range row.Children {
+				if v.Type == "marker" {
+					if v.Value == "\\c" {
+						break
+					}
+					if v.Value == "\\wj" {
+						verseText += `<span class="jesus-words">`
+					}
+					for _, wl := range v.Children {
+						if wl.Type == "text" {
+							if !unicode.IsPunct([]rune(wl.Value)[0]) {
+								verseText += " "
+							}
+							verseText += wl.Value
+						}
+					}
+					if v.Value == "\\wj" {
+						verseText += `</span>`
+					}
+				} else if v.Type == "versenumber" {
+					var err error
+					verse, err = strconv.Atoi(v.Value)
+					if err != nil {
+						log.Printf("Error: %v", err)
+					}
+				} else if v.Type == "text" {
+					if !unicode.IsPunct([]rune(v.Value)[0]) {
+						verseText += " "
+					}
+					verseText += v.Value
+				}
+			}
+			log.Printf("Chapter %v Verse %v", chapter, verse)
+			verseText = strings.TrimSpace(verseText)
+			v := Item{Type: "verse", Key: i, BCV: ch.BCV + "." + strconv.Itoa(verse), Text: verseText}
+			out.BibleStream = append(out.BibleStream, v)
 		}
 	}
 

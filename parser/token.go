@@ -22,6 +22,9 @@ const (
 	// MarkerImte1 represents '\imte' or '\imte1' marker
 	MarkerImte1
 
+	// MarkerH represents '\h' marker for headings
+	MarkerH
+
 	// MarkerC represents '\c' marker
 	MarkerC
 
@@ -45,6 +48,30 @@ const (
 
 	// EndMarkerWJ represents '\wj*' marker for Jesus' words
 	EndMarkerWJ
+
+	// MarkerF represents '\F' marker for footnotes
+	MarkerF
+
+	// EndMarkerF represents '\f*' marker for footnotes
+	EndMarkerF
+
+	// MarkerFR represents '\FR' marker for footnote reference
+	MarkerFR
+
+	// MarkerFT represents '\FT' marker for footnote text
+	MarkerFT
+
+	// MarkerX represents '\X' marker for cross-reference
+	MarkerX
+
+	// EndMarkerX represents '\f*' marker for cross-reference
+	EndMarkerX
+
+	// MarkerXO represents '\XO' marker for cross-reference origin reference
+	MarkerXO
+
+	// MarkerXT represents '\XT' marker for cross-reference text
+	MarkerXT
 
 	// MarkerAdd represents '\add' marker for words added by the translator for clarity
 	MarkerAdd

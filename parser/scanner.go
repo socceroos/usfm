@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"io"
-	"log"
 	"strings"
 	"unicode"
 )
@@ -92,8 +91,6 @@ func (s *Scanner) scanMarker() (tok Token, lit string) {
 		}
 	}
 
-	log.Printf("Scan Marker: %v", strings.ToUpper(buf.String()))
-
 	switch strings.ToUpper(buf.String()) {
 	case `\ID`:
 		return MarkerID, buf.String()
@@ -101,6 +98,8 @@ func (s *Scanner) scanMarker() (tok Token, lit string) {
 		return MarkerIde, buf.String()
 	case `\IMTE`, `\IMTE1`:
 		return MarkerImte1, buf.String()
+	case `\H`:
+		return MarkerH, buf.String()
 	case `\C`:
 		return MarkerC, buf.String()
 	case `\V`:
@@ -117,6 +116,22 @@ func (s *Scanner) scanMarker() (tok Token, lit string) {
 		return MarkerWJ, buf.String()
 	case `\WJ*`:
 		return EndMarkerWJ, buf.String()
+	case `\X`:
+		return MarkerX, buf.String()
+	case `\X*`:
+		return EndMarkerX, buf.String()
+	case `\XO`:
+		return MarkerXO, buf.String()
+	case `\XT`:
+		return MarkerXT, buf.String()
+	case `\F`:
+		return MarkerF, buf.String()
+	case `\F*`:
+		return EndMarkerF, buf.String()
+	case `\FR`:
+		return MarkerFR, buf.String()
+	case `\FT`:
+		return MarkerFT, buf.String()
 	case `\ADD`:
 		return MarkerAdd, buf.String()
 	case `\ADD*`:
