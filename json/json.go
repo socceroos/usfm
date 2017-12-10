@@ -184,6 +184,15 @@ func convertV2(in *parser.Content) interface{} {
 			out.BibleStream = append(out.BibleStream, book)
 		} else if row.Value == "\\p" {
 			pText := "<br><br>"
+			for _, v := range row.Children {
+				if v.Type == "text" {
+					if !unicode.IsPunct([]rune(v.Value)[0]) || []rune(v.Value)[0] == 0x201C {
+						pText += " "
+					}
+
+					pText += v.Value
+				}
+			}
 			p := Item{Type: "paragraph", Key: i, Text: pText}
 			out.BibleStream = append(out.BibleStream, p)
 		} else if row.Value == "\\v" {
@@ -195,7 +204,7 @@ func convertV2(in *parser.Content) interface{} {
 						break
 					}
 					if v.Value == "\\wj" {
-						verseText += `<span class="jesus-words">`
+						verseText += `<span class='jesus-words'>`
 					}
 					for _, wl := range v.Children {
 						if wl.Type == "text" {

@@ -108,6 +108,18 @@ func (p *Parser) Parse() (*Content, error) {
 			marker.Type = "marker"
 			marker.Value = lit
 			book.Children = append(book.Children, marker)
+			for {
+				tok, lit = p.scanIgnoreWhitespace()
+				if tok != Text {
+					p.unscan()
+					break
+				} else {
+					childT := &Content{}
+					childT.Type = "text"
+					childT.Value = lit
+					marker.Children = append(marker.Children, childT)
+				}
+			}
 		} else if tok == MarkerS {
 			log.Print("Found Section Heading marker.")
 			marker := &Content{}
