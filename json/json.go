@@ -172,6 +172,7 @@ func convertV2(in *parser.Content) interface{} {
 			chText := `<span class="chapter">` + row.Children[0].Value + `</span>`
 			ch = Item{Type: "chapter", Key: i, BCV: book.BCV + "." + row.Children[0].Value, Text: chText}
 			out.BibleStream = append(out.BibleStream, ch)
+			verse = 0
 		} else if row.Value == "\\h" {
 			cHead := `<span class="book">`
 			for _, v := range row.Children {
@@ -183,19 +184,69 @@ func convertV2(in *parser.Content) interface{} {
 			book = Item{Type: "book", Key: i, BCV: in.Value, Text: cHead}
 			out.BibleStream = append(out.BibleStream, book)
 		} else if row.Value == "\\p" {
-			pText := "<br><br>"
+			pText := "<p>"
 			for _, v := range row.Children {
+				/*jsonEncoder := json.NewEncoder(os.Stdout)
+				jsonEncoder.SetIndent(" ", "  ")
+				err := jsonEncoder.Encode(v)
+				if err != nil {
+					log.Printf("%v", err)
+				}*/
 				if v.Type == "text" {
 					if !unicode.IsPunct([]rune(v.Value)[0]) || []rune(v.Value)[0] == 0x201C {
 						pText += " "
 					}
 
 					pText += v.Value
+				} else if v.Value == "\\v" {
+					verse++
+					var verseText string
+					verseText += "<span class='bible-verse-number r" + strconv.Itoa(i) + " v" + strconv.Itoa(verse) + "'>" + strconv.Itoa(verse) + "</span><span class='bible-verse r" + strconv.Itoa(i) + " v" + strconv.Itoa(verse) + "'>"
+					for _, vC := range v.Children {
+						if vC.Type == "marker" {
+							if vC.Value == "\\c" {
+								break
+							}
+							if vC.Value == "\\wj" {
+								verseText += `<span class='jesus-words'>`
+							}
+							for _, wl := range vC.Children {
+								if wl.Type == "text" {
+									if !unicode.IsPunct([]rune(wl.Value)[0]) {
+										verseText += " "
+									}
+									verseText += wl.Value
+								}
+							}
+							if vC.Value == "\\wj" {
+								verseText += `</span>`
+							}
+						} else if vC.Type == "versenumber" {
+							var err error
+							verse, err = strconv.Atoi(vC.Value)
+							if err != nil {
+								log.Printf("Error: %v", err)
+							}
+						} else if vC.Type == "text" {
+							if !unicode.IsPunct([]rune(vC.Value)[0]) {
+								verseText += " "
+							}
+							verseText += vC.Value
+						}
+					}
+					log.Printf("Chapter %v Verse %v", chapter, verse)
+					verseText += "</span>"
+					pText += strings.TrimSpace(verseText)
+					//vC := Item{Type: "verse", Key: i, BCV: ch.BCV + "." + strconv.Itoa(verse), Text: verseText}
+					//out.BibleStream = append(out.BibleStream, vC)
 				}
+			}
+			if len(row.Children) > 0 {
+				pText += "</p>"
 			}
 			p := Item{Type: "paragraph", Key: i, Text: pText}
 			out.BibleStream = append(out.BibleStream, p)
-		} else if row.Value == "\\v" {
+		} /*else if row.Value == "\\v" {
 			verse++
 			var verseText string
 			for _, v := range row.Children {
@@ -234,7 +285,7 @@ func convertV2(in *parser.Content) interface{} {
 			verseText = strings.TrimSpace(verseText)
 			v := Item{Type: "verse", Key: i, BCV: ch.BCV + "." + strconv.Itoa(verse), Text: verseText}
 			out.BibleStream = append(out.BibleStream, v)
-		}
+		}*/
 	}
 
 	return out
