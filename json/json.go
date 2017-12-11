@@ -199,6 +199,7 @@ func convertV2(in *parser.Content) interface{} {
 
 					pText += v.Value
 				} else if v.Value == "\\v" {
+					// TODO: Verse here is iterating on sub-verse paragraphs - FIX IT YOU NUMPTY
 					verse++
 					var verseText string
 					verseText += "<span class='bible-verse-number r" + strconv.Itoa(i) + " v" + strconv.Itoa(verse) + "'>" + strconv.Itoa(verse) + "</span><span class='bible-verse r" + strconv.Itoa(i) + " v" + strconv.Itoa(verse) + "'>"
