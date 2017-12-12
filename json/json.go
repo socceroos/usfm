@@ -24,13 +24,13 @@ type JSON struct {
 }
 
 // Render JSON
-func (h *JSON) Render(w io.Writer) error {
+func (h *JSON) Render(w io.Writer, startKey int) error {
 	content, err := h.usfmParser.Parse()
 	if err != nil {
 		return err
 	}
 
-	converted := convertV2(content)
+	converted := convertV2(content, startKey)
 
 	jsonEncoder := json.NewEncoder(w)
 	jsonEncoder.SetIndent(" ", "  ")
@@ -95,7 +95,7 @@ func convertV1(in *parser.Content) interface{} {
 					if v.Value == "\\c" {
 						break
 					}
-					if v.Value == "\\wj" {
+					if v.Value == "\\wj" || v.Value == `\wj` {
 						verseText += `<span class="jesus-words">`
 					}
 					for _, wl := range v.Children {
@@ -106,7 +106,7 @@ func convertV1(in *parser.Content) interface{} {
 							verseText += wl.Value
 						}
 					}
-					if v.Value == "\\wj" {
+					if v.Value == "\\wj" || v.Value == `\wj` {
 						verseText += `</span>`
 					}
 				} else if v.Type == "versenumber" {
@@ -140,11 +140,12 @@ type Translation struct {
 }
 
 type Item struct {
-	Type    string
-	Key     int
-	RootMap []int
-	BCV     string
-	Text    string
+	Type     string
+	Key      int
+	RootMap  []int
+	BCV      string
+	Text     string
+	Children []Item
 }
 
 type CarryFormat struct {
@@ -152,7 +153,7 @@ type CarryFormat struct {
 	BibleStream []Item
 }
 
-func convertV2(in *parser.Content) interface{} {
+func convertV2(in *parser.Content, key int) interface{} {
 	log.Print("\n\n\n\n\n\n\n\nConverting format to Carry JSON v2...\n\n")
 	out := CarryFormat{}
 	out.Translation = Translation{ShortCode: "web", Name: "World English Bible", Revision: "1", DatePublished: "1997"}
@@ -161,8 +162,9 @@ func convertV2(in *parser.Content) interface{} {
 	verse := 0
 	ch := Item{}
 	book := Item{}
-	for i, row := range in.Children {
+	for _, row := range in.Children {
 		if row.Value == "\\c" {
+			key++
 			var err error
 			chapter, err = strconv.Atoi(row.Children[0].Value)
 			if err != nil {
@@ -170,10 +172,12 @@ func convertV2(in *parser.Content) interface{} {
 				chapter++
 			}
 			chText := `<span class="chapter">` + row.Children[0].Value + `</span>`
-			ch = Item{Type: "chapter", Key: i, BCV: book.BCV + "." + row.Children[0].Value, Text: chText}
+			ch = Item{Type: "chapter", Key: key, BCV: book.BCV + "." + row.Children[0].Value, Text: chText}
+			ch.RootMap = append(ch.RootMap, key)
 			out.BibleStream = append(out.BibleStream, ch)
 			verse = 0
 		} else if row.Value == "\\h" {
+			key++
 			cHead := `<span class="book">`
 			for _, v := range row.Children {
 				if v.Type == "heading" {
@@ -181,17 +185,13 @@ func convertV2(in *parser.Content) interface{} {
 				}
 			}
 			cHead += "</span>"
-			book = Item{Type: "book", Key: i, BCV: in.Value, Text: cHead}
+			book = Item{Type: "book", Key: key, BCV: in.Value, Text: cHead}
+			book.RootMap = append(book.RootMap, key)
 			out.BibleStream = append(out.BibleStream, book)
 		} else if row.Value == "\\p" {
 			pText := "<p>"
+			p := Item{Type: "paragraph", Key: 0, Text: "", Children: []Item{}}
 			for _, v := range row.Children {
-				/*jsonEncoder := json.NewEncoder(os.Stdout)
-				jsonEncoder.SetIndent(" ", "  ")
-				err := jsonEncoder.Encode(v)
-				if err != nil {
-					log.Printf("%v", err)
-				}*/
 				if v.Type == "text" {
 					if !unicode.IsPunct([]rune(v.Value)[0]) || []rune(v.Value)[0] == 0x201C {
 						pText += " "
@@ -199,10 +199,26 @@ func convertV2(in *parser.Content) interface{} {
 
 					pText += v.Value
 				} else if v.Value == "\\v" {
-					// TODO: Verse here is iterating on sub-verse paragraphs - FIX IT YOU NUMPTY
 					verse++
+					isSubVerse := false
 					var verseText string
-					verseText += "<span class='bible-verse-number r" + strconv.Itoa(i) + " v" + strconv.Itoa(verse) + "'>" + strconv.Itoa(verse) + "</span><span class='bible-verse r" + strconv.Itoa(i) + " v" + strconv.Itoa(verse) + "'>"
+
+					for _, vC := range v.Children {
+						if vC.Type == "versenumber" {
+							var err error
+							verse, err = strconv.Atoi(vC.Value)
+							if err != nil {
+								log.Printf("Error: %v", err)
+							}
+						} else if vC.Type == "subverse" {
+							isSubVerse = true
+						}
+					}
+					if !isSubVerse {
+						key++
+						verseText += "<span class='bible-verse-number r" + strconv.Itoa(key) + " v" + strconv.Itoa(verse) + "'>" + strconv.Itoa(verse) + "</span>"
+					}
+					verseText += "<span class='bible-verse r" + strconv.Itoa(key) + " v" + strconv.Itoa(verse) + "'>"
 					for _, vC := range v.Children {
 						if vC.Type == "marker" {
 							if vC.Value == "\\c" {
@@ -222,12 +238,6 @@ func convertV2(in *parser.Content) interface{} {
 							if vC.Value == "\\wj" {
 								verseText += `</span>`
 							}
-						} else if vC.Type == "versenumber" {
-							var err error
-							verse, err = strconv.Atoi(vC.Value)
-							if err != nil {
-								log.Printf("Error: %v", err)
-							}
 						} else if vC.Type == "text" {
 							if !unicode.IsPunct([]rune(vC.Value)[0]) {
 								verseText += " "
@@ -238,14 +248,22 @@ func convertV2(in *parser.Content) interface{} {
 					log.Printf("Chapter %v Verse %v", chapter, verse)
 					verseText += "</span>"
 					pText += strings.TrimSpace(verseText)
-					//vC := Item{Type: "verse", Key: i, BCV: ch.BCV + "." + strconv.Itoa(verse), Text: verseText}
-					//out.BibleStream = append(out.BibleStream, vC)
+					vC := Item{Type: "verse", Key: key, BCV: ch.BCV + "." + strconv.Itoa(verse), Text: verseText}
+					p.Children = append(p.Children, vC)
 				}
 			}
 			if len(row.Children) > 0 {
 				pText += "</p>"
 			}
-			p := Item{Type: "paragraph", Key: i, Text: pText}
+			//p := Item{Type: "paragraph", Key: key, Text: pText}
+			// Find the range of RootMap keys we're supporting in this.
+			var pKeys []int
+			for _, v := range p.Children {
+				if v.Key > 0 {
+					pKeys = append(pKeys, v.Key)
+				}
+			}
+			p.RootMap = pKeys
 			out.BibleStream = append(out.BibleStream, p)
 		} /*else if row.Value == "\\v" {
 			verse++

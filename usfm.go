@@ -10,10 +10,11 @@ import (
 
 // Command Line Flags
 type flags struct {
-	Input   string
-	Output  string
-	FmtSrc  string
-	FmtDest string
+	Input    string
+	Output   string
+	FmtSrc   string
+	FmtDest  string
+	KeyStart int
 }
 
 func main() {
@@ -24,6 +25,7 @@ func main() {
 	flag.StringVar(&fl.FmtDest, "dest-format", "json", "The destination format")
 	flag.StringVar(&fl.Input, "i", "in.usfm", "Input file")
 	flag.StringVar(&fl.Output, "o", "out.json", "Output file")
+	flag.IntVar(&fl.KeyStart, "key-start", 0, "Starting key (root bible map, 0 == beginning)")
 	flag.Parse()
 
 	// Options for JSON conversion
@@ -47,7 +49,7 @@ func main() {
 	defer out.Close()
 
 	// Render and save
-	err = json.Render(out)
+	err = json.Render(out, fl.KeyStart)
 	if err != nil {
 		log.Println(err)
 	}

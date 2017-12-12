@@ -4,7 +4,7 @@ import "io"
 
 // Renderer render the parsed content
 type Renderer interface {
-	Render(w io.Writer) error
+	Render(w io.Writer, startKey int) error
 }
 
 // Options for rendering

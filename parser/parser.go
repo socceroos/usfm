@@ -104,7 +104,7 @@ func (p *Parser) Parse() (*Content, error) {
 				return nil, fmt.Errorf("found %q, expected heading", lit)
 			}
 		} else if tok == MarkerP {
-			log.Print("Found Paragraph marker.")
+			log.Print("\n\n\n\nFound Paragraph marker.")
 			markerP := &Content{}
 			markerP.Type = "marker"
 			markerP.Value = lit
@@ -112,11 +112,11 @@ func (p *Parser) Parse() (*Content, error) {
 			for {
 				tok, lit = p.scanIgnoreWhitespace()
 				/*if tok == MarkerP || tok == MarkerC {*/
-				if tok == 0x0085 || tok == EOF || tok == MarkerC || tok == MarkerP || tok == MarkerS {
+				if tok == EOF || tok == MarkerC || tok == MarkerP || tok == MarkerS {
 					p.unscan()
 					break
 				} else if tok == MarkerV {
-					log.Print("Found Verse markerV.")
+					log.Print("\n\nFound Verse markerV.")
 					markerV = &Content{}
 					markerV.Type = "marker"
 					markerV.Value = lit
@@ -127,8 +127,10 @@ func (p *Parser) Parse() (*Content, error) {
 						child.Type = "versenumber"
 						child.Value = lit
 						markerV.Children = append(markerV.Children, child)
+						log.Printf("Verse Number is %v", child.Value)
 						for {
 							tok, lit = p.scanIgnoreWhitespace()
+							log.Printf("Token: %v Lit: %v", tok, lit)
 							//if !(tok == Text || tok == Number || tok == MarkerW) {
 							//	log.Printf("Invalid child token: %v", tok)
 							//	p.unscan()
@@ -248,6 +250,10 @@ func (p *Parser) Parse() (*Content, error) {
 						return nil, fmt.Errorf("found %q, expected verse number", lit)
 					}
 				} else if tok == Text {
+					// OK we've found a paragraph that
+					// continues a previous verse
+					log.Print("\n\n\nWe're in a Paragraph with Text now:\n\n")
+
 					p.unscan()
 					var verseNum *Content
 					for _, c := range markerV.Children {
@@ -256,24 +262,129 @@ func (p *Parser) Parse() (*Content, error) {
 							break
 						}
 					}
+					newVerseNum := &Content{Type: "versenumber", Value: verseNum.Value, Children: verseNum.Children}
 					markerPV := &Content{}
 					markerPV.Type = "marker"
 					markerPV.Value = "\\v"
-					markerPV.Children = append(markerPV.Children, verseNum)
+					markerPV.Children = append(markerPV.Children, newVerseNum)
+					// Add a new "sub-verse" marker
+					markerSV := &Content{Type: "subverse", Value: "Sub-verse paragraph", Children: nil}
+					markerPV.Children = append(markerPV.Children, markerSV)
 					for {
 						tok, lit = p.scanIgnoreWhitespace()
-						/*if tok == MarkerP || tok == MarkerC {*/
-						if tok == 0x0085 || tok == EOF || tok == MarkerV || tok == MarkerC || tok == MarkerP || tok == MarkerS {
+						log.Printf("Token: %v Lit: %v", tok, lit)
+						if tok == EOF || tok == MarkerV || tok == MarkerC || tok == MarkerP || tok == MarkerS {
+							log.Printf("We're breaking because we hit %v:%v", tok, lit)
 							p.unscan()
 							break
+						} else if tok == MarkerWJ {
+							log.Print("Found Jesus' Words marker.")
+							childA := &Content{}
+							childA.Type = "marker"
+							childA.Value = lit
+							markerPV.Children = append(markerPV.Children, childA)
+							for {
+								tok, lit = p.scanIgnoreWhitespace()
+								if tok == EndMarkerWJ {
+									log.Print("Found Jesus' Words end markerPV.\n\n")
+									//p.unscan()
+									break
+								} else {
+									childT := &Content{}
+									childT.Type = "text"
+									childT.Value = lit
+									childA.Children = append(childA.Children, childT)
+								}
+							}
+						} else if tok == MarkerAdd {
+							log.Print("Found Add marker.")
+							childA := &Content{}
+							childA.Type = "marker"
+							childA.Value = lit
+							markerPV.Children = append(markerPV.Children, childA)
+							for {
+								tok, lit = p.scanIgnoreWhitespace()
+								if tok == EndMarkerAdd {
+									log.Print("Found Add end marker.\n\n")
+									//p.unscan()
+									break
+								} else {
+									log.Print("Found Add subject text.")
+									childT := &Content{}
+									childT.Type = "text"
+									childT.Value = lit
+									childA.Children = append(childA.Children, childT)
+								}
+							}
+						} else if tok == MarkerW {
+							log.Print("Found Wordlist marker.")
+							markerEnd := false
+							childW := &Content{}
+							childW.Type = "marker"
+							childW.Value = lit
+							markerPV.Children = append(markerPV.Children, childW)
+							for {
+								tok, lit = p.scanIgnoreWhitespace()
+								if tok == EndMarkerW {
+									log.Print("Found Wordlist end marker.\n\n")
+									markerEnd = true
+									//p.unscan()
+									break
+								} else if tok == Citation {
+									log.Print("Found Citation metadata.")
+									childC := &Content{}
+									childC.Type = "citation"
+									childC.Value = lit
+									childW.Children = append(childW.Children, childC)
+								} else {
+									log.Print("Found Citation subject text.")
+									childT := &Content{}
+									childT.Type = "text"
+									childT.Value = lit
+									childW.Children = append(childW.Children, childT)
+								}
+
+							}
+							if markerEnd {
+								//break
+							}
+						} else if tok == MarkerF {
+							log.Print("Found Footnote marker.")
+							childW := &Content{}
+							childW.Type = "marker"
+							childW.Value = lit
+							markerPV.Children = append(markerPV.Children, childW)
+							for {
+								tok, lit = p.scanIgnoreWhitespace()
+								if tok == EndMarkerF {
+									log.Print("Found Footnote end marker.\n\n")
+									//p.unscan()
+									break
+								}
+							}
+						} else if tok == MarkerX {
+							log.Print("Found Cross-Reference marker.")
+							childW := &Content{}
+							childW.Type = "marker"
+							childW.Value = lit
+							markerPV.Children = append(markerPV.Children, childW)
+							for {
+								tok, lit = p.scanIgnoreWhitespace()
+								if tok == EndMarkerX {
+									log.Print("Found Cross-Reference end marker.\n\n")
+									//p.unscan()
+									break
+								}
+							}
+						} else {
+							childT := &Content{}
+							childT.Type = "text"
+							childT.Value = lit
+							markerPV.Children = append(markerPV.Children, childT)
 						}
-						childT := &Content{}
-						childT.Type = "text"
-						childT.Value = lit
-						markerPV.Children = append(markerPV.Children, childT)
 					}
 					markerP.Children = append(markerP.Children, markerPV)
-					break
+					//break
 				}
 			}
 		} else if tok == MarkerS {
