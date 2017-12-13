@@ -31,11 +31,20 @@ const (
 	// MarkerV represents '\v' marker
 	MarkerV
 
+	// MarkerM represents '\m' marker for non-indented paragraphs
+	MarkerM
+
 	// MarkerP represents '\p' marker for paragraphs
 	MarkerP
 
 	// MarkerS represents '\s#' marker for section headings
 	MarkerS
+
+	// MarkerQ1 represents '\q1' marker for a poetry line
+	MarkerQ1
+
+	// MarkerQ2 represents '\q2' marker for a poetry line
+	MarkerQ2
 
 	// MarkerW represents '\w' marker for wordlist/glossary/dictionary
 	MarkerW

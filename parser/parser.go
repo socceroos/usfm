@@ -104,6 +104,8 @@ func (p *Parser) Parse() (*Content, error) {
 				return nil, fmt.Errorf("found %q, expected heading", lit)
 			}
 		} else if tok == MarkerP {
+			haveQ1Carryover := false
+			q1Carryover := &Content{}
 			log.Print("\n\n\n\nFound Paragraph marker.")
 			markerP := &Content{}
 			markerP.Type = "marker"
@@ -128,17 +130,40 @@ func (p *Parser) Parse() (*Content, error) {
 						child.Value = lit
 						markerV.Children = append(markerV.Children, child)
 						log.Printf("Verse Number is %v", child.Value)
+
+						// Add the q1Carryover if there is one
+						if haveQ1Carryover {
+							markerV.Children = append(markerV.Children, q1Carryover)
+							haveQ1Carryover = false
+							q1Carryover = &Content{}
+						}
 						for {
 							tok, lit = p.scanIgnoreWhitespace()
 							log.Printf("Token: %v Lit: %v", tok, lit)
-							//if !(tok == Text || tok == Number || tok == MarkerW) {
-							//	log.Printf("Invalid child token: %v", tok)
-							//	p.unscan()
-							//	break
-							//} else if tok == MarkerW {
 							if tok == 0x0085 || tok == EOF || tok == MarkerV || tok == MarkerC || tok == MarkerP || tok == MarkerS {
 								p.unscan()
 								break
+							} else if tok == MarkerQ1 {
+								log.Print("Found Q1 marker.")
+								childA := &Content{}
+								childA.Type = "marker"
+								childA.Value = lit
+								tok, lit = p.scanIgnoreWhitespace()
+								if tok == MarkerV {
+									q1Carryover = childA
+									haveQ1Carryover = true
+									p.unscan()
+									break
+								} else {
+									p.unscan()
+									markerV.Children = append(markerV.Children, childA)
+								}
+							} else if tok == MarkerQ2 {
+								log.Print("Found Q2 marker.")
+								childA := &Content{}
+								childA.Type = "marker"
+								childA.Value = lit
+								markerV.Children = append(markerV.Children, childA)
 							} else if tok == MarkerWJ {
 								log.Print("Found Jesus' Words markerV.")
 								childA := &Content{}
@@ -277,6 +302,18 @@ func (p *Parser) Parse() (*Content, error) {
 							log.Printf("We're breaking because we hit %v:%v", tok, lit)
 							p.unscan()
 							break
+						} else if tok == MarkerQ1 {
+							log.Print("Found Q1 marker.")
+							childA := &Content{}
+							childA.Type = "marker"
+							childA.Value = lit
+							markerPV.Children = append(markerPV.Children, childA)
+						} else if tok == MarkerQ2 {
+							log.Print("Found Q2 marker.")
+							childA := &Content{}
+							childA.Type = "marker"
+							childA.Value = lit
+							markerPV.Children = append(markerPV.Children, childA)
 						} else if tok == MarkerWJ {
 							log.Print("Found Jesus' Words marker.")
 							childA := &Content{}
