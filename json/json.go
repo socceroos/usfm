@@ -234,14 +234,14 @@ func convertV2(in *parser.Content, key int) interface{} {
 
 					// If we have a poetic marker then add the span
 					if hasQ1Marker && q1Count == 1 && q2Count == 0 {
-						verseText += "<span class='poetic-1'>"
+						verseText += "<br><span class='poetic-1'>"
 					} else if hasQ1Marker && q1Count > 1 {
-						verseText += "</span><span class='poetic-1'>"
+						verseText += "</span><br><span class='poetic-1'>"
 					}
 					if hasQ2Marker && q2Count == 1 && q1Count == 0 {
-						verseText += "<span class='poetic-2'>"
+						verseText += "<br><span class='poetic-2'>"
 					} else if hasQ2Marker && (q2Count > 1 || q1Count >= 1) {
-						verseText += "</span><span class='poetic-2'>"
+						verseText += "</span><br><span class='poetic-2'>"
 					}
 					for _, vC := range v.Children {
 						if vC.Type == "marker" {
@@ -253,9 +253,9 @@ func convertV2(in *parser.Content, key int) interface{} {
 
 								// If we have a poetic marker then add the span
 								if hasQ1Marker && q1Count == 1 && q2Count == 0 {
-									verseText += "<span class='poetic-1'>"
+									verseText += "<br><span class='poetic-1'>"
 								} else if hasQ1Marker && q1Count > 1 {
-									verseText += "</span><span class='poetic-1'>"
+									verseText += "</span><br><span class='poetic-1'>"
 								}
 							} else if vC.Value == "\\q2" {
 								hasQ2Marker = true
@@ -263,9 +263,9 @@ func convertV2(in *parser.Content, key int) interface{} {
 
 								// If we have a poetic marker then add the span
 								if hasQ2Marker && q2Count == 1 && q1Count == 0 {
-									verseText += "<span class='poetic-2'>"
+									verseText += "<br><span class='poetic-2'>"
 								} else if hasQ2Marker && (q2Count > 1 || q1Count >= 1) {
-									verseText += "</span><span class='poetic-2'>"
+									verseText += "</span><br><span class='poetic-2'>"
 								}
 							} else if vC.Value == "\\wj" {
 								verseText += `<span class='jesus-words'>`
@@ -283,8 +283,8 @@ func convertV2(in *parser.Content, key int) interface{} {
 							}
 						} else if vC.Type == "text" {
 							if !unicode.IsPunct([]rune(vC.Value)[0]) {
-								verseText += " "
 							}
+							verseText += " "
 							verseText += vC.Value
 						}
 					}
