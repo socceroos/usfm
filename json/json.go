@@ -162,6 +162,7 @@ func convertV2(in *parser.Content, key int) interface{} {
 	verse := 0
 	ch := Item{}
 	book := Item{}
+	bookName := ""
 	for _, row := range in.Children {
 		if row.Value == "\\c" {
 			key++
@@ -171,17 +172,18 @@ func convertV2(in *parser.Content, key int) interface{} {
 				log.Printf("Error: %v", err)
 				chapter++
 			}
-			chText := `<span class="chapter">` + row.Children[0].Value + `</span>`
+			chText := `<span class="bible-chapter">` + bookName + " " + row.Children[0].Value + `</span>`
 			ch = Item{Type: "chapter", Key: key, BCV: book.BCV + "." + row.Children[0].Value, Text: chText}
 			ch.RootMap = append(ch.RootMap, key)
 			out.BibleStream = append(out.BibleStream, ch)
 			verse = 0
 		} else if row.Value == "\\h" {
 			key++
-			cHead := `<span class="book">`
+			cHead := `<span class="bible-book">`
 			for _, v := range row.Children {
 				if v.Type == "heading" {
 					cHead += v.Value
+					bookName = v.Value
 				}
 			}
 			cHead += "</span>"
