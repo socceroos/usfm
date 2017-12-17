@@ -37,6 +37,9 @@ const (
 	// MarkerP represents '\p' marker for paragraphs
 	MarkerP
 
+	// MarkerNB represents '\nb' marker for non-break continuing paragraphs
+	MarkerNB
+
 	// MarkerS represents '\s#' marker for section headings
 	MarkerS
 

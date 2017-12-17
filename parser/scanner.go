@@ -104,7 +104,7 @@ func (s *Scanner) scanMarker() (tok Token, lit string) {
 		return MarkerC, buf.String()
 	case `\V`:
 		return MarkerV, buf.String()
-	case `\P`, `¶`, `\M`:
+	case `\P`, `¶`, `\M`, `\NB`:
 		return MarkerP, buf.String()
 	case `\S`, `\S1`:
 		return MarkerS, buf.String()
