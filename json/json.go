@@ -182,15 +182,17 @@ func convertV2(in *parser.Content, key int) interface{} {
 			cHead := `<span class="bible-book">`
 			for _, v := range row.Children {
 				if v.Type == "heading" {
-					cHead += v.Value
-					bookName = v.Value
+					cHead += v.Value + " "
+					bookName += v.Value + " "
 				}
 			}
+			cHead = strings.TrimSpace(cHead)
+			bookName = strings.TrimSpace(bookName)
 			cHead += "</span>"
 			book = Item{Type: "book", Key: key, BCV: in.Value, Text: cHead}
 			book.RootMap = append(book.RootMap, key)
 			out.BibleStream = append(out.BibleStream, book)
-		} else if row.Value == "\\p" {
+		} else if row.Value == "\\p" || row.Value == "\\nb" || row.Value == "\\m" {
 			hasQ1Marker := false
 			q1Count := 0
 			hasQ2Marker := false
@@ -354,6 +356,9 @@ func convertV2(in *parser.Content, key int) interface{} {
 			out.BibleStream = append(out.BibleStream, v)
 		}*/
 	}
+
+	// Output the key we got up to.
+	log.Printf("Last key was %v", key)
 
 	return out
 }

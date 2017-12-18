@@ -6,6 +6,7 @@ import (
 	"io"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 )
 
 // Scanner represents a lexical scanner.
@@ -28,6 +29,16 @@ func (s *Scanner) read() rune {
 	return ch
 }
 
+// peek peeks the next byte - this doesn't advance the reader.
+func (s *Scanner) peek(i int) rune {
+	ch, err := s.r.Peek(i)
+	if err != nil {
+		return eof
+	}
+	r, _ := utf8.DecodeRune(ch)
+	return r
+}
+
 // unread places the previously read rune back on the reader.
 func (s *Scanner) unread() { _ = s.r.UnreadRune() }
 
@@ -48,8 +59,13 @@ func (s *Scanner) Scan() (tok Token, lit string) {
 		s.unread()
 		return s.scanText()
 	} else if unicode.IsDigit(ch) {
+		ch2 := s.peek(1)
 		s.unread()
-		return s.scanNumber()
+		if isLetter(ch2) {
+			return s.scanText()
+		} else {
+			return s.scanNumber()
+		}
 	} else if isPipe(ch) {
 		s.unread()
 		return s.scanCitation()
