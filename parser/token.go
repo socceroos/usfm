@@ -25,6 +25,9 @@ const (
 	// MarkerH represents '\h' marker for headings
 	MarkerH
 
+	// MarkerD represents '\d' marker for descriptive titles
+	MarkerD
+
 	// MarkerC represents '\c' marker
 	MarkerC
 
@@ -37,17 +40,29 @@ const (
 	// MarkerP represents '\p' marker for paragraphs
 	MarkerP
 
+	// MarkerB represents '\b' marker for a line-break
+	MarkerB
+
 	// MarkerNB represents '\nb' marker for non-break continuing paragraphs
 	MarkerNB
 
 	// MarkerS represents '\s#' marker for section headings
 	MarkerS
 
+	// MarkerSP represents '\sp' marker for speaker identification
+	MarkerSP
+
 	// MarkerQ1 represents '\q1' marker for a poetry line
 	MarkerQ1
 
 	// MarkerQ2 represents '\q2' marker for a poetry line
 	MarkerQ2
+
+	// MarkerQS represents '\qs' marker for the word 'selah'
+	MarkerQS
+
+	// EndMarkerQS represents '\qs*' marker for the word 'selah'
+	EndMarkerQS
 
 	// MarkerW represents '\w' marker for wordlist/glossary/dictionary
 	MarkerW

@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -11,11 +12,12 @@ import (
 
 // Command Line Flags
 type flags struct {
-	Input    string
-	Output   string
-	FmtSrc   string
-	FmtDest  string
-	KeyStart int
+	Input     string
+	Output    string
+	FmtSrc    string
+	FmtDest   string
+	KeyStart  int
+	Directory string
 }
 
 func main() {
@@ -27,43 +29,67 @@ func main() {
 	flag.StringVar(&fl.Input, "i", "in.usfm", "Input file")
 	flag.StringVar(&fl.Output, "o", "", "Output file (defaults to input filename with .json extension)")
 	flag.IntVar(&fl.KeyStart, "key-start", 0, "Starting key (root bible map, 0 == beginning)")
+	flag.StringVar(&fl.Directory, "d", "", "Generate outputs for all files in the target directory (handles key iteration based on basic sort of directory list).")
 	flag.Parse()
 
 	// Options for JSON conversion
 	o := json.Options{}
 
-	// Open our source file
-	in, err := os.Open(fl.Input)
-	if err != nil {
-		log.Fatalf("Error reading input file: %s", err)
-	}
-	defer in.Close()
-
-	// Create a new renderer
-	json := json.NewRenderer(o, in)
-
-	// Create our out-file
-	var outfile string
-	if fl.Output == "" {
-		var dir = filepath.Dir(fl.Input)
-		var filename = filepath.Base(fl.Input)
-		var ext = filepath.Ext(fl.Input)
-		var name = filename[0 : len(filename)-len(ext)]
-		outfile = filepath.Join(dir, name+".json")
+	var files []os.FileInfo
+	var dir string
+	var key = fl.KeyStart
+	if fl.Directory != "" {
+		dir = fl.Directory
+		var err error
+		files, err = ioutil.ReadDir(fl.Directory)
+		if err != nil {
+			log.Fatalf("Error reading directory at %s: %s", fl.Directory, err)
+		}
 	} else {
-		outfile = fl.Output
-	}
-	out, err := os.Create(outfile)
-	if err != nil {
-		log.Fatalf("Error creating output file: %s", err)
-	}
-	defer out.Close()
-
-	// Render and save
-	err = json.Render(out, fl.KeyStart)
-	if err != nil {
-		log.Println(err)
+		dir = filepath.Dir(fl.Input)
+		fInfo, err := os.Lstat(fl.Input)
+		if err != nil {
+			log.Fatalf("Error getting info for input file: %s", err)
+		}
+		files = append(files, fInfo)
 	}
 
-	log.Printf("Saved to %v", outfile)
+	// Go through each file and generate the output.
+	for _, file := range files {
+		if filepath.Ext(file.Name()) == ".usfm" {
+			// Open our source file
+			in, err := os.Open(filepath.Join(dir, file.Name()))
+			if err != nil {
+				log.Fatalf("Error reading input file: %s", err)
+			}
+			defer in.Close()
+
+			// Create a new renderer
+			json := json.NewRenderer(o, in)
+
+			// Create our out-file
+			var outfile string
+			if fl.Output == "" && fl.Directory != "" {
+				var filename = file.Name()
+				var ext = filepath.Ext(filename)
+				var name = filename[0 : len(filename)-len(ext)]
+				outfile = filepath.Join(dir, name+".json")
+			} else {
+				outfile = fl.Output
+			}
+			out, err := os.Create(outfile)
+			if err != nil {
+				log.Fatalf("Error creating output file: %s", err)
+			}
+			defer out.Close()
+
+			// Render and save
+			key, err = json.Render(out, key)
+			if err != nil {
+				log.Println(err)
+			}
+			log.Printf("Saved to %v", outfile)
+		}
+	}
+
 }

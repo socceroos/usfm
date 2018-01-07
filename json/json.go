@@ -24,23 +24,23 @@ type JSON struct {
 }
 
 // Render JSON
-func (h *JSON) Render(w io.Writer, startKey int) error {
+func (h *JSON) Render(w io.Writer, startKey int) (endKey int, err error) {
 	content, err := h.usfmParser.Parse()
 	if err != nil {
-		return err
+		return startKey, err
 	}
 
-	converted := convertV2(content, startKey)
+	//converted, endKey := convertV2(content, startKey)
 
 	jsonEncoder := json.NewEncoder(w)
 	jsonEncoder.SetIndent(" ", "  ")
-	err = jsonEncoder.Encode(converted)
-	//err = jsonEncoder.Encode(content)
+	//err = jsonEncoder.Encode(converted)
+	err = jsonEncoder.Encode(content)
 	if err != nil {
-		return err
+		return startKey, err
 	}
 
-	return nil
+	return endKey, nil
 }
 
 type Chapter struct {
@@ -153,7 +153,7 @@ type CarryFormat struct {
 	BibleStream []Item
 }
 
-func convertV2(in *parser.Content, key int) interface{} {
+func convertV2(in *parser.Content, key int) (interface{}, int) {
 	log.Print("\n\n\n\n\n\n\n\nConverting format to Carry JSON v2...\n\n")
 	out := CarryFormat{}
 	out.Translation = Translation{ShortCode: "web", Name: "World English Bible", Revision: "1", DatePublished: "1997"}
@@ -192,12 +192,24 @@ func convertV2(in *parser.Content, key int) interface{} {
 			book = Item{Type: "book", Key: key, BCV: in.Value, Text: cHead}
 			book.RootMap = append(book.RootMap, key)
 			out.BibleStream = append(out.BibleStream, book)
+		} else if row.Value == "\\d" {
+			var desc string
+			desc += "<span class='description'>"
+			for _, c := range row.Children {
+				if c.Type == "description" {
+					desc += " "
+					desc += c.Value
+				}
+			}
+			desc += "</span>"
+			d := Item{Type: "description", Key: 0, BCV: "", Text: desc}
+			out.BibleStream = append(out.BibleStream, d)
 		} else if row.Value == "\\p" || row.Value == "\\nb" || row.Value == "\\m" {
 			hasQ1Marker := false
 			q1Count := 0
 			hasQ2Marker := false
 			q2Count := 0
-			pText := "<p>"
+			pText := "<div class='paragraph-start'></div>"
 			p := Item{Type: "paragraph", Key: 0, Text: "", Children: []Item{}}
 			for _, v := range row.Children {
 				if v.Type == "text" {
@@ -206,6 +218,19 @@ func convertV2(in *parser.Content, key int) interface{} {
 					}
 
 					pText += v.Value
+				} else if v.Value == "\\sp" {
+				} else if v.Value == "\\d" {
+					var desc string
+					desc += "<span class='description'>"
+					for _, c := range v.Children {
+						if c.Type == "description" {
+							desc += " "
+							desc += c.Value
+						}
+					}
+					desc += "</span>"
+					d := Item{Type: "description", Key: 0, BCV: "", Text: desc}
+					p.Children = append(p.Children, d)
 				} else if v.Value == "\\q1" {
 					hasQ1Marker = true
 					q1Count++
@@ -216,6 +241,7 @@ func convertV2(in *parser.Content, key int) interface{} {
 					verse++
 					isSubVerse := false
 					var verseText string
+					var qClass string
 
 					for _, vC := range v.Children {
 						if vC.Type == "versenumber" {
@@ -228,34 +254,55 @@ func convertV2(in *parser.Content, key int) interface{} {
 							isSubVerse = true
 						}
 					}
+
+					if v.Children[1].Value == "\\q1" {
+						qClass = " poetic"
+					}
+					if v.Children[1].Value == "\\q2" {
+						qClass = " poetic"
+					}
+
+					verseText += "<span class='bible-verse r" + strconv.Itoa(key) + " v" + strconv.Itoa(verse) + qClass + "'>"
+
 					if !isSubVerse {
 						key++
 						verseText += "<span class='bible-verse-number r" + strconv.Itoa(key) + " v" + strconv.Itoa(verse) + "'>" + strconv.Itoa(verse) + "</span>"
 					}
-					verseText += "<span class='bible-verse r" + strconv.Itoa(key) + " v" + strconv.Itoa(verse) + "'>"
 
 					// If we have a poetic marker then add the span
 					if hasQ1Marker && q1Count == 1 && q2Count == 0 {
-						verseText += "<br><span class='poetic-1'>"
+						verseText += "<span class='poetic-1'>"
 					} else if hasQ1Marker && q1Count > 1 {
 						verseText += "</span><br><span class='poetic-1'>"
 					}
 					if hasQ2Marker && q2Count == 1 && q1Count == 0 {
-						verseText += "<br><span class='poetic-2'>"
+						verseText += "<span class='poetic-2'>"
 					} else if hasQ2Marker && (q2Count > 1 || q1Count >= 1) {
 						verseText += "</span><br><span class='poetic-2'>"
 					}
-					for _, vC := range v.Children {
+
+					for i, vC := range v.Children {
 						if vC.Type == "marker" {
 							if vC.Value == "\\c" {
 								break
+							} else if vC.Value == "\\qs" {
+								log.Print("Found qs marker")
+								verseText += "<span class='qs'>Selah</span>"
+							} else if vC.Value == "\\sp" {
 							} else if vC.Value == "\\q1" {
 								hasQ1Marker = true
 								q1Count++
 
+								if q1Count == 1 && qClass == "" && i > 1 {
+									verseText += "<div class='poetic-start'></div>"
+								}
+								if i > 1 && q1Count > 1 && q2Count == 0 {
+									verseText += "<br>"
+								}
+
 								// If we have a poetic marker then add the span
 								if hasQ1Marker && q1Count == 1 && q2Count == 0 {
-									verseText += "<br><span class='poetic-1'>"
+									verseText += "<span class='poetic-1'>"
 								} else if hasQ1Marker && q1Count > 1 {
 									verseText += "</span><br><span class='poetic-1'>"
 								}
@@ -263,21 +310,31 @@ func convertV2(in *parser.Content, key int) interface{} {
 								hasQ2Marker = true
 								q2Count++
 
+								if q2Count == 1 && qClass == "" && i > 1 && q1Count == 0 {
+									verseText += "<div class='poetic-start'></div>"
+								}
+								if i > 1 && q2Count > 1 && q1Count == 0 {
+									verseText += "<br>"
+								}
+
 								// If we have a poetic marker then add the span
 								if hasQ2Marker && q2Count == 1 && q1Count == 0 {
-									verseText += "<br><span class='poetic-2'>"
+									verseText += "<span class='poetic-2'>"
 								} else if hasQ2Marker && (q2Count > 1 || q1Count >= 1) {
 									verseText += "</span><br><span class='poetic-2'>"
 								}
 							} else if vC.Value == "\\wj" {
 								verseText += `<span class='jesus-words'>`
 							}
-							for _, wl := range vC.Children {
-								if wl.Type == "text" {
-									if !unicode.IsPunct([]rune(wl.Value)[0]) {
-										verseText += " "
+							// Get all text from markers (except qs marker)
+							if vC.Value != "\\qs" {
+								for _, wl := range vC.Children {
+									if wl.Type == "text" {
+										if !unicode.IsPunct([]rune(wl.Value)[0]) {
+											verseText += " "
+										}
+										verseText += wl.Value
 									}
-									verseText += wl.Value
 								}
 							}
 							if vC.Value == "\\wj" {
@@ -294,6 +351,12 @@ func convertV2(in *parser.Content, key int) interface{} {
 					// Close our poetic lines
 					if hasQ1Marker || hasQ2Marker {
 						verseText += "</span>"
+
+						// Reset our poetry vars at the end of each verse
+						hasQ1Marker = false
+						hasQ2Marker = false
+						q1Count = 0
+						q2Count = 0
 					}
 					// Close the verse
 					verseText += "</span>"
@@ -360,5 +423,5 @@ func convertV2(in *parser.Content, key int) interface{} {
 	// Output the key we got up to.
 	log.Printf("Last key was %v", key)
 
-	return out
+	return out, key
 }
