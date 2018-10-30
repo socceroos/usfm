@@ -3,6 +3,7 @@ package parser
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"io"
 	"strings"
 	"unicode"
@@ -11,7 +12,9 @@ import (
 
 // Scanner represents a lexical scanner.
 type Scanner struct {
-	r *bufio.Reader
+	r        *bufio.Reader
+	Pos      int
+	LastSize int
 }
 
 // NewScanner returns a new instance of Scanner.
@@ -22,10 +25,15 @@ func NewScanner(r io.Reader) *Scanner {
 // read reads the next rune from the bufferred reader.
 // Returns the rune(0) if an error occurs (or io.EOF is returned).
 func (s *Scanner) read() rune {
-	ch, _, err := s.r.ReadRune()
+	ch, bytes, err := s.r.ReadRune()
 	if err != nil {
 		return eof
 	}
+
+	// add the byte count to the position counter
+	s.Pos = s.Pos + bytes
+	s.LastSize = bytes
+
 	return ch
 }
 
@@ -40,10 +48,13 @@ func (s *Scanner) peek(i int) rune {
 }
 
 // unread places the previously read rune back on the reader.
-func (s *Scanner) unread() { _ = s.r.UnreadRune() }
+func (s *Scanner) unread() {
+	_ = s.r.UnreadRune()
+	s.Pos = s.Pos - s.LastSize
+}
 
-// Scan returns the next token and literal value.
-func (s *Scanner) Scan() (tok Token, lit string) {
+// Scan returns the next token, literal value and position.
+func (s *Scanner) Scan() (tok Token, lit string, pos int) {
 	// Read the next rune.
 	ch := s.read()
 
@@ -73,14 +84,14 @@ func (s *Scanner) Scan() (tok Token, lit string) {
 
 	switch ch {
 	case eof:
-		return EOF, ""
+		return EOF, "", s.Pos - s.LastSize
 	}
 
-	return Illegal, string(ch)
+	return Illegal, string(ch), s.Pos - s.LastSize
 }
 
 // scanMarker consumes the current rune and read whole marker
-func (s *Scanner) scanMarker() (tok Token, lit string) {
+func (s *Scanner) scanMarker() (tok Token, lit string, pos int) {
 	// Create a buffer and read the current character into it.
 	var buf bytes.Buffer
 	buf.WriteRune(s.read())
@@ -103,79 +114,91 @@ func (s *Scanner) scanMarker() (tok Token, lit string) {
 		// Handle largest marker like \imte1
 		// anything beyond that is illegal
 		if i == 6 {
-			return Illegal, buf.String()
+			return Illegal, buf.String(), s.Pos - s.LastSize
 		}
 	}
 
-	switch strings.ToUpper(buf.String()) {
-	case `\ID`:
-		return MarkerID, buf.String()
-	case `\IDE`:
-		return MarkerIde, buf.String()
-	case `\IMTE`, `\IMTE1`:
-		return MarkerImte1, buf.String()
-	case `\D`:
-		return MarkerD, buf.String()
-	case `\H`:
-		return MarkerH, buf.String()
-	case `\C`:
-		return MarkerC, buf.String()
-	case `\V`:
-		return MarkerV, buf.String()
-	case `\P`, `¶`, `\M`, `\NB`:
-		return MarkerP, buf.String()
-	case `\B`:
-		return MarkerB, buf.String()
-	case `\S`, `\S1`:
-		return MarkerS, buf.String()
-	case `\SP`:
-		return MarkerSP, buf.String()
-	case `\Q1`:
-		return MarkerQ1, buf.String()
-	case `\Q2`:
-		return MarkerQ2, buf.String()
-	case `\QS`:
-		return MarkerQS, buf.String()
-	case `\QS*`:
-		return EndMarkerQS, buf.String()
-	case `\W`:
-		return MarkerW, buf.String()
-	case `\W*`:
-		return EndMarkerW, buf.String()
-	case `\WJ`:
-		return MarkerWJ, buf.String()
-	case `\WJ*`:
-		return EndMarkerWJ, buf.String()
-	case `\X`:
-		return MarkerX, buf.String()
-	case `\X*`:
-		return EndMarkerX, buf.String()
-	case `\XO`:
-		return MarkerXO, buf.String()
-	case `\XT`:
-		return MarkerXT, buf.String()
-	case `\F`:
-		return MarkerF, buf.String()
-	case `\F*`:
-		return EndMarkerF, buf.String()
-	case `\FR`:
-		return MarkerFR, buf.String()
-	case `\FT`:
-		return MarkerFT, buf.String()
-	case `\ADD`:
-		return MarkerAdd, buf.String()
-	case `\ADD*`:
-		return EndMarkerAdd, buf.String()
-	case `|`:
-		return Citation, buf.String()
+	fmt.Printf("\nPosition: %v    Last Read Size: %v    Marker Buffer Length: %v    Marker: %v\n", s.Pos, s.LastSize, buf.Len(), buf.String())
+	fmt.Printf("\nMarker %v was scanned to %v byte position and we're going to calculate that it starts at %v\n", buf.String(), s.Pos, (s.Pos - (buf.Len() - 1)))
+
+	var size int
+	if s.Pos < 10 {
+		size = buf.Len()
+	} else {
+		size = buf.Len()
 	}
 
-	return Illegal, buf.String()
+	position := s.Pos - size
+
+	switch strings.ToUpper(buf.String()) {
+	case `\ID`:
+		return MarkerID, buf.String(), position
+	case `\IDE`:
+		return MarkerIde, buf.String(), position
+	case `\IMTE`, `\IMTE1`:
+		return MarkerImte1, buf.String(), position
+	case `\D`:
+		return MarkerD, buf.String(), position
+	case `\H`:
+		return MarkerH, buf.String(), position
+	case `\C`:
+		return MarkerC, buf.String(), position
+	case `\V`:
+		return MarkerV, buf.String(), position
+	case `\P`, `¶`, `\M`, `\NB`:
+		return MarkerP, buf.String(), position
+	case `\B`:
+		return MarkerB, buf.String(), position
+	case `\S`, `\S1`:
+		return MarkerS, buf.String(), position
+	case `\SP`:
+		return MarkerSP, buf.String(), position
+	case `\Q1`:
+		return MarkerQ1, buf.String(), position
+	case `\Q2`:
+		return MarkerQ2, buf.String(), position
+	case `\QS`:
+		return MarkerQS, buf.String(), position
+	case `\QS*`:
+		return EndMarkerQS, buf.String(), position
+	case `\W`:
+		return MarkerW, buf.String(), position
+	case `\W*`:
+		return EndMarkerW, buf.String(), position
+	case `\WJ`:
+		return MarkerWJ, buf.String(), position
+	case `\WJ*`:
+		return EndMarkerWJ, buf.String(), position
+	case `\X`:
+		return MarkerX, buf.String(), position
+	case `\X*`:
+		return EndMarkerX, buf.String(), position
+	case `\XO`:
+		return MarkerXO, buf.String(), position
+	case `\XT`:
+		return MarkerXT, buf.String(), position
+	case `\F`:
+		return MarkerF, buf.String(), position
+	case `\F*`:
+		return EndMarkerF, buf.String(), position
+	case `\FR`:
+		return MarkerFR, buf.String(), position
+	case `\FT`:
+		return MarkerFT, buf.String(), position
+	case `\ADD`:
+		return MarkerAdd, buf.String(), position
+	case `\ADD*`:
+		return EndMarkerAdd, buf.String(), position
+	case `|`:
+		return Citation, buf.String(), position
+	}
+
+	return Illegal, buf.String(), position
 
 }
 
 // scanWhitespace consumes the current rune and all contiguous whitespace.
-func (s *Scanner) scanWhitespace() (tok Token, lit string) {
+func (s *Scanner) scanWhitespace() (tok Token, lit string, pos int) {
 	// Create a buffer and read the current character into it.
 	var buf bytes.Buffer
 	buf.WriteRune(s.read())
@@ -193,11 +216,11 @@ func (s *Scanner) scanWhitespace() (tok Token, lit string) {
 		}
 	}
 
-	return Whitespace, buf.String()
+	return Whitespace, buf.String(), s.Pos - buf.Len()
 }
 
 // scanCitation consumes the current rune and all contiguous runes until it hits the next Marker.
-func (s *Scanner) scanCitation() (tok Token, lit string) {
+func (s *Scanner) scanCitation() (tok Token, lit string, pos int) {
 	// Create a buffer and read the current character into it.
 	var buf bytes.Buffer
 	buf.WriteRune(s.read())
@@ -215,11 +238,11 @@ func (s *Scanner) scanCitation() (tok Token, lit string) {
 		}
 	}
 
-	return Citation, buf.String()
+	return Citation, buf.String(), s.Pos - buf.Len()
 }
 
 // scanText consumes the current rune and all contiguous ident runes.
-func (s *Scanner) scanText() (tok Token, lit string) {
+func (s *Scanner) scanText() (tok Token, lit string, pos int) {
 	// Create a buffer and read the current character into it.
 	var buf bytes.Buffer
 	buf.WriteRune(s.read())
@@ -240,11 +263,11 @@ func (s *Scanner) scanText() (tok Token, lit string) {
 		}
 	}
 
-	return Text, buf.String()
+	return Text, buf.String(), s.Pos - buf.Len()
 }
 
 // scanNumber consumes the current rune and all contiguous number runes.
-func (s *Scanner) scanNumber() (tok Token, lit string) {
+func (s *Scanner) scanNumber() (tok Token, lit string, pos int) {
 	// Create a buffer and read the current character into it.
 	var buf bytes.Buffer
 	buf.WriteRune(s.read())
@@ -262,7 +285,7 @@ func (s *Scanner) scanNumber() (tok Token, lit string) {
 		}
 	}
 
-	return Number, buf.String()
+	return Number, buf.String(), s.Pos - buf.Len()
 }
 
 // isLetter returns true if the rune is backslash (\)

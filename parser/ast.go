@@ -9,6 +9,9 @@ type Content struct {
 	// Value is the text (Empty for markers)
 	Value string
 
+	// The byte position of the marker
+	Position int
+
 	// Children point to the child contents (empty if no child)
 	Children []*Content
 }
