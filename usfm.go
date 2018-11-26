@@ -14,10 +14,35 @@ import (
 type flags struct {
 	Input     string
 	Output    string
+	Append    string
 	FmtSrc    string
 	FmtDest   string
 	KeyStart  int
+	ByteStart int64
 	Directory string
+}
+
+type IndexItem struct {
+        ID     int    `json:"id"`
+        RootID int    `json:"rootID"`
+        OSIS   string `json:"osis"`
+        Start  int64    `json:"start"`
+        End    int64    `json:"end"`
+        Type   string `json:"type"`
+}
+
+var Index map[string]IndexItem
+
+type Translation struct {
+        ShortCode     string
+        Name          string
+        Revision      string
+        DatePublished string
+}
+
+type IndexFormat struct {
+        Translation Translation       `json:"translation"`
+        Index       map[int]IndexItem `json:"index"`
 }
 
 func main() {
@@ -28,7 +53,9 @@ func main() {
 	flag.StringVar(&fl.FmtDest, "dest-format", "json", "The destination format")
 	flag.StringVar(&fl.Input, "i", "in.usfm", "Input file")
 	flag.StringVar(&fl.Output, "o", "", "Output file (defaults to input filename with .json extension)")
+	flag.StringVar(&fl.Append, "a", "", "Append output index to an index.json file (filename with .json extension)")
 	flag.IntVar(&fl.KeyStart, "key-start", 0, "Starting key (root bible map, 0 == beginning)")
+	flag.Int64Var(&fl.ByteStart, "byte-start", 0, "Offset the bytecount start (for calculation of future-conjoined USFM files)")
 	flag.StringVar(&fl.Directory, "d", "", "Generate outputs for all files in the target directory (handles key iteration based on basic sort of directory list).")
 	flag.Parse()
 
@@ -38,6 +65,7 @@ func main() {
 	var files []os.FileInfo
 	var dir string
 	var key = fl.KeyStart
+	var byteStart = fl.ByteStart
 	if fl.Directory != "" {
 		dir = fl.Directory
 		var err error
@@ -55,7 +83,7 @@ func main() {
 	}
 
 	// Go through each file and generate the output.
-	for _, file := range files {
+	for i, file := range files {
 		if filepath.Ext(file.Name()) == ".usfm" {
 			// Open our source file
 			in, err := os.Open(filepath.Join(dir, file.Name()))
@@ -77,14 +105,38 @@ func main() {
 			} else {
 				outfile = fl.Output
 			}
-			out, err := os.Create(outfile)
+
+			/*var index IndexFile
+
+			// If we are appending then open and load the JSON
+			if fl.Append != "" {
+				// Open our source file
+				appendFile, err := os.Open(fl.Append)
+				if err != nil {
+					log.Fatalf("Error reading input file %s: %s", fl.Append, err)
+				}
+				defer in.Close()
+
+				bytes, _ := ioutil.ReadAll(appendFile)
+				var index IndexFile
+				json.Unmarshal([]byte(bytes), &IndexFile)
+			}*/
+
+			// We'll work out the byteStart if we're converting a directory
+			if (fl.Directory != "") {
+				if (i > 0) {
+					byteStart = byteStart + files[i-1].Size()
+				}
+			}
+
+			out, err := os.OpenFile(outfile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 			if err != nil {
 				log.Fatalf("Error creating output file: %s", err)
 			}
 			defer out.Close()
 
 			// Render and save
-			key, err = json.Render(out, key)
+			key, err = json.Render(out, key, byteStart)
 			if err != nil {
 				log.Println(err)
 			}

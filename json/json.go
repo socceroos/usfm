@@ -24,14 +24,14 @@ type JSON struct {
 }
 
 // Render JSON
-func (h *JSON) Render(w io.Writer, startKey int) (endKey int, err error) {
+func (h *JSON) Render(w io.Writer, startKey int, startByte int64) (endKey int, err error) {
 	content, err := h.usfmParser.Parse()
 	if err != nil {
 		return startKey, err
 	}
 
 	//converted, endKey := convertV2(content, startKey)
-	converted, endKey := convertToIndex(content, startKey)
+	converted, endKey := convertToIndex(content, startKey, startByte)
 
 	jsonEncoder := json.NewEncoder(w)
 	jsonEncoder.SetIndent(" ", "  ")
@@ -393,8 +393,8 @@ type IndexItem struct {
 	ID     int    `json:"id"`
 	RootID int    `json:"rootID"`
 	OSIS   string `json:"osis"`
-	Start  int    `json:"start"`
-	End    int    `json:"end"`
+	Start  int64  `json:"start"`
+	End    int64  `json:"end"`
 	Type   string `json:"type"`
 }
 
@@ -405,7 +405,7 @@ type IndexFormat struct {
 	Index       map[int]IndexItem `json:"index"`
 }
 
-func convertToIndex(in *parser.Content, key int) (interface{}, int) {
+func convertToIndex(in *parser.Content, key int, byteStart int64) (interface{}, int) {
 	log.Print("\n\n\n\n\n\n\n\nCreating Carry JSON Index file...\n\n")
 	out := IndexFormat{}
 	out.Translation = Translation{ShortCode: "web", Name: "World English Bible", Revision: "1", DatePublished: "1997"}
@@ -425,7 +425,7 @@ func convertToIndex(in *parser.Content, key int) (interface{}, int) {
 				log.Printf("Error: %v", err)
 				chapter++
 			}
-			ch = IndexItem{Type: "chapter", ID: key, RootID: key, OSIS: book.OSIS + "." + row.Children[0].Value, Start: row.Position}
+			ch = IndexItem{Type: "chapter", ID: key, RootID: key, OSIS: book.OSIS + "." + row.Children[0].Value, Start: int64(row.Position) + byteStart}
 			out.Index[key] = ch
 			prevItem := out.Index[key-1]
 			prevItem.End = ch.Start - 1
@@ -443,7 +443,7 @@ func convertToIndex(in *parser.Content, key int) (interface{}, int) {
 			cHead = strings.TrimSpace(cHead)
 			bookName = strings.TrimSpace(bookName)
 			cHead += "</span>"
-			book = IndexItem{Type: "book", ID: key, RootID: key, OSIS: in.Value, Start: row.Position}
+			book = IndexItem{Type: "book", ID: key, RootID: key, OSIS: in.Value, Start: int64(row.Position) + byteStart}
 			out.Index[key] = book
 		} else if row.Value == "\\d" {
 			var desc string
@@ -479,7 +479,7 @@ func convertToIndex(in *parser.Content, key int) (interface{}, int) {
 						}
 					}
 					desc += "</span>"
-					d := IndexItem{Type: "description", ID: 0, RootID: key, OSIS: "", Start: v.Position}
+					d := IndexItem{Type: "description", ID: 0, RootID: key, OSIS: "", Start: int64(v.Position) + byteStart}
 					out.Index[key] = d
 					prevItem := out.Index[key-1]
 					prevItem.End = d.Start - 1
@@ -615,7 +615,7 @@ func convertToIndex(in *parser.Content, key int) (interface{}, int) {
 					// Close the verse
 					verseText += "</span>"
 					pText += strings.TrimSpace(verseText)
-					vC := IndexItem{Type: "verse", ID: key, RootID: key, OSIS: ch.OSIS + "." + strconv.Itoa(verse), Start: v.Position}
+					vC := IndexItem{Type: "verse", ID: key, RootID: key, OSIS: ch.OSIS + "." + strconv.Itoa(verse), Start: int64(v.Position) + byteStart}
 					out.Index[key] = vC
 					prevItem := out.Index[key-1]
 					prevItem.End = vC.Start - 1
@@ -638,6 +638,7 @@ func convertToIndex(in *parser.Content, key int) (interface{}, int) {
 
 	// Output the key we got up to.
 	log.Printf("Last key was %v", key)
+	log.Printf("Last byte was %v", out.Index[key].End)
 
 	return out, key
 }

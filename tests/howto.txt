@@ -1,0 +1,10 @@
+# First, create an index JSON file from all the .usfm files in the current directory
+../usfm -d . -o [translation_code]_index.json
+
+# Next, create a single, appended USFM file for the translation
+awk '{print $0}' *.usfm > [translation_code].usfm
+
+# Finally, you will need to go through the [translation_code]_index.json file to make 
+# sure it's one big index list instead of separate ones. Open the file in vim and run these commands:
+:g/}\n{/-1,+8d
+:%s/}\(\n     "\)/},\1/g
