@@ -118,8 +118,8 @@ func (s *Scanner) scanMarker() (tok Token, lit string, pos int) {
 		}
 	}
 
-	fmt.Printf("\nPosition: %v    Last Read Size: %v    Marker Buffer Length: %v    Marker: %v\n", s.Pos, s.LastSize, buf.Len(), buf.String())
-	fmt.Printf("\nMarker %v was scanned to %v byte position and we're going to calculate that it starts at %v\n", buf.String(), s.Pos, (s.Pos - (buf.Len() - 1)))
+	// fmt.Printf("\nPosition: %v    Last Read Size: %v    Marker Buffer Length: %v    Marker: %v\n", s.Pos, s.LastSize, buf.Len(), buf.String())
+	// fmt.Printf("\nMarker %v was scanned to %v byte position and we're going to calculate that it starts at %v\n", buf.String(), s.Pos, (s.Pos - (buf.Len() - 1)))
 
 	var size int
 	if s.Pos < 10 {
@@ -271,7 +271,7 @@ func (s *Scanner) scanNumber() (tok Token, lit string, pos int) {
 	// Create a buffer and read the current character into it.
 	var buf bytes.Buffer
 	buf.WriteRune(s.read())
-
+	fmt.Print(buf.String())
 	// Read every subsequent ident character into the buffer.
 	// Non-ident characters and EOF will cause the loop to exit.
 	for {

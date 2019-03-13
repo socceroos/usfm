@@ -1,4 +1,4 @@
-package json
+package index
 
 import "io"
 

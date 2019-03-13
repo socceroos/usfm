@@ -22,24 +22,24 @@ func NewParser(r io.Reader) *Parser {
 	return &Parser{s: NewScanner(r)}
 }
 
-// Parse parses a USFM formatted book content
-func (p *Parser) Parse() (*Content, error) {
+// Parse parses a USFM formatted book Node
+func (p *Parser) Parse() (*Node, error) {
 	log.Printf("Scanning for book...")
-	book := &Content{}
+	book := &Node{}
 	book.Type = "book"
-	markerV := &Content{}
+	markerV := &Node{}
 	for {
 		// Read a field.
 		tok, lit, pos := p.scanIgnoreWhitespace()
 		if tok == MarkerID {
-			marker := &Content{}
+			marker := &Node{}
 			marker.Type = "marker"
 			marker.Value = lit
 			marker.Position = pos
 			book.Children = append(book.Children, marker)
 			tok, lit, pos = p.scanIgnoreWhitespace()
 			if tok == Text && len([]rune(lit)) == 3 {
-				child := &Content{}
+				child := &Node{}
 				child.Type = "bookcode"
 				child.Value = lit
 				child.Position = pos
@@ -52,7 +52,7 @@ func (p *Parser) Parse() (*Content, error) {
 						p.unscan()
 						break
 					} else {
-						child := &Content{}
+						child := &Node{}
 						child.Type = "text"
 						child.Value = lit
 						child.Position = pos
@@ -63,7 +63,7 @@ func (p *Parser) Parse() (*Content, error) {
 				return nil, fmt.Errorf("found %q, expected book code", lit)
 			}
 		} else if tok == MarkerIde {
-			marker := &Content{}
+			marker := &Node{}
 			marker.Type = "marker"
 			marker.Value = lit
 			marker.Position = pos
@@ -74,7 +74,7 @@ func (p *Parser) Parse() (*Content, error) {
 					p.unscan()
 					break
 				} else {
-					child := &Content{}
+					child := &Node{}
 					child.Type = "text"
 					child.Value = lit
 					child.Position = pos
@@ -82,14 +82,14 @@ func (p *Parser) Parse() (*Content, error) {
 				}
 			}
 		} else if tok == MarkerC {
-			marker := &Content{}
+			marker := &Node{}
 			marker.Type = "marker"
 			marker.Value = lit
 			marker.Position = pos
 			book.Children = append(book.Children, marker)
 			tok, lit, pos = p.scanIgnoreWhitespace()
 			if tok == Number {
-				child := &Content{}
+				child := &Node{}
 				child.Type = "chapternumber"
 				child.Value = lit
 				child.Position = pos
@@ -99,7 +99,7 @@ func (p *Parser) Parse() (*Content, error) {
 			}
 		} else if tok == MarkerH {
 			log.Print("Found Heading marker.")
-			marker := &Content{}
+			marker := &Node{}
 			marker.Type = "marker"
 			marker.Value = lit
 			marker.Position = pos
@@ -110,7 +110,7 @@ func (p *Parser) Parse() (*Content, error) {
 					p.unscan()
 					break
 				} else {
-					child := &Content{}
+					child := &Node{}
 					child.Type = "heading"
 					child.Value = lit
 					child.Position = pos
@@ -119,7 +119,7 @@ func (p *Parser) Parse() (*Content, error) {
 			}
 		} else if tok == MarkerD {
 			log.Print("Found Descriptive Title marker.")
-			marker := &Content{}
+			marker := &Node{}
 			marker.Type = "marker"
 			marker.Value = lit
 			marker.Position = pos
@@ -130,7 +130,7 @@ func (p *Parser) Parse() (*Content, error) {
 					p.unscan()
 					break
 				} else {
-					child := &Content{}
+					child := &Node{}
 					child.Type = "description"
 					child.Value = lit
 					child.Position = pos
@@ -139,9 +139,9 @@ func (p *Parser) Parse() (*Content, error) {
 			}
 		} else if tok == MarkerP {
 			haveQ1Carryover := false
-			q1Carryover := &Content{}
+			q1Carryover := &Node{}
 			log.Print("\n\n\n\nFound Paragraph marker.")
-			markerP := &Content{}
+			markerP := &Node{}
 			markerP.Type = "marker"
 			markerP.Value = lit
 			markerP.Position = pos
@@ -154,7 +154,7 @@ func (p *Parser) Parse() (*Content, error) {
 					break
 				} else if tok == MarkerQ1 {
 					log.Print("Found Q1 marker.")
-					child := &Content{}
+					child := &Node{}
 					child.Type = "marker"
 					child.Value = lit
 					child.Position = pos
@@ -167,7 +167,7 @@ func (p *Parser) Parse() (*Content, error) {
 					}
 				} else if tok == MarkerD {
 					log.Print("Found Descriptive Title marker.")
-					marker := &Content{}
+					marker := &Node{}
 					marker.Type = "marker"
 					marker.Value = lit
 					marker.Position = pos
@@ -178,7 +178,7 @@ func (p *Parser) Parse() (*Content, error) {
 							p.unscan()
 							break
 						} else {
-							child := &Content{}
+							child := &Node{}
 							child.Type = "description"
 							child.Value = lit
 							child.Position = pos
@@ -187,14 +187,14 @@ func (p *Parser) Parse() (*Content, error) {
 					}
 				} else if tok == MarkerV {
 					log.Print("\n\nFound Verse marker.")
-					markerV = &Content{}
+					markerV = &Node{}
 					markerV.Type = "marker"
 					markerV.Value = lit
 					markerV.Position = pos
 					markerP.Children = append(markerP.Children, markerV)
 					tok, lit, pos = p.scanIgnoreWhitespace()
 					if tok == Number {
-						child := &Content{}
+						child := &Node{}
 						child.Type = "versenumber"
 						child.Value = lit
 						child.Position = pos
@@ -205,7 +205,7 @@ func (p *Parser) Parse() (*Content, error) {
 						if haveQ1Carryover {
 							markerV.Children = append(markerV.Children, q1Carryover)
 							haveQ1Carryover = false
-							q1Carryover = &Content{}
+							q1Carryover = &Node{}
 						}
 						for {
 							tok, lit, pos = p.scanIgnoreWhitespace()
@@ -215,7 +215,7 @@ func (p *Parser) Parse() (*Content, error) {
 								break
 							} else if tok == MarkerQ1 {
 								log.Print("Found Q1 marker.")
-								childA := &Content{}
+								childA := &Node{}
 								childA.Type = "marker"
 								childA.Value = lit
 								childA.Position = pos
@@ -231,14 +231,14 @@ func (p *Parser) Parse() (*Content, error) {
 								}
 							} else if tok == MarkerQ2 {
 								log.Print("Found Q2 marker.")
-								childA := &Content{}
+								childA := &Node{}
 								childA.Type = "marker"
 								childA.Value = lit
 								childA.Position = pos
 								markerV.Children = append(markerV.Children, childA)
 							} else if tok == MarkerWJ {
 								log.Print("Found Jesus' Words markerV.")
-								childA := &Content{}
+								childA := &Node{}
 								childA.Type = "marker"
 								childA.Value = lit
 								childA.Position = pos
@@ -250,7 +250,7 @@ func (p *Parser) Parse() (*Content, error) {
 										//p.unscan()
 										break
 									} else {
-										childT := &Content{}
+										childT := &Node{}
 										childT.Type = "text"
 										childT.Value = lit
 										childT.Position = pos
@@ -259,7 +259,7 @@ func (p *Parser) Parse() (*Content, error) {
 								}
 							} else if tok == MarkerAdd {
 								log.Print("Found Add marker.")
-								childA := &Content{}
+								childA := &Node{}
 								childA.Type = "marker"
 								childA.Value = lit
 								childA.Position = pos
@@ -272,7 +272,7 @@ func (p *Parser) Parse() (*Content, error) {
 										break
 									} else {
 										log.Print("Found Add subject text.")
-										childT := &Content{}
+										childT := &Node{}
 										childT.Type = "text"
 										childT.Value = lit
 										childT.Position = pos
@@ -281,7 +281,7 @@ func (p *Parser) Parse() (*Content, error) {
 								}
 							} else if tok == MarkerW {
 								log.Print("Found Wordlist marker.")
-								childW := &Content{}
+								childW := &Node{}
 								childW.Type = "marker"
 								childW.Value = lit
 								childW.Position = pos
@@ -293,14 +293,14 @@ func (p *Parser) Parse() (*Content, error) {
 										break
 									} else if tok == Citation {
 										log.Print("Found Citation metadata.")
-										childC := &Content{}
+										childC := &Node{}
 										childC.Type = "citation"
 										childC.Value = lit
 										childC.Position = pos
 										childW.Children = append(childW.Children, childC)
 									} else {
 										log.Print("Found Citation subject text.")
-										childT := &Content{}
+										childT := &Node{}
 										childT.Type = "text"
 										childT.Value = lit
 										childT.Position = pos
@@ -310,7 +310,7 @@ func (p *Parser) Parse() (*Content, error) {
 								}
 							} else if tok == MarkerSP {
 								log.Print("Found Speaker Identification marker.")
-								childW := &Content{}
+								childW := &Node{}
 								childW.Type = "marker"
 								childW.Value = lit
 								childW.Position = pos
@@ -321,7 +321,7 @@ func (p *Parser) Parse() (*Content, error) {
 										p.unscan()
 										break
 									} else {
-										childT := &Content{}
+										childT := &Node{}
 										childT.Type = "speaker"
 										childT.Value = lit
 										childT.Position = pos
@@ -330,7 +330,7 @@ func (p *Parser) Parse() (*Content, error) {
 								}
 							} else if tok == MarkerQS {
 								log.Print("Found Selah marker.")
-								childW := &Content{}
+								childW := &Node{}
 								childW.Type = "marker"
 								childW.Value = lit
 								childW.Position = pos
@@ -340,7 +340,7 @@ func (p *Parser) Parse() (*Content, error) {
 									if tok == EndMarkerQS {
 										break
 									} else {
-										childT := &Content{}
+										childT := &Node{}
 										childT.Type = "text"
 										childT.Value = lit
 										childT.Position = pos
@@ -349,7 +349,7 @@ func (p *Parser) Parse() (*Content, error) {
 								}
 							} else if tok == MarkerF {
 								log.Print("Found Footnote marker.")
-								childW := &Content{}
+								childW := &Node{}
 								childW.Type = "marker"
 								childW.Value = lit
 								childW.Position = pos
@@ -364,7 +364,7 @@ func (p *Parser) Parse() (*Content, error) {
 								}
 							} else if tok == MarkerX {
 								log.Print("Found Cross-Reference marker.")
-								childW := &Content{}
+								childW := &Node{}
 								childW.Type = "marker"
 								childW.Value = lit
 								childW.Position = pos
@@ -379,7 +379,7 @@ func (p *Parser) Parse() (*Content, error) {
 								}
 							} else if tok == MarkerB {
 							} else {
-								child := &Content{}
+								child := &Node{}
 								child.Type = "text"
 								child.Value = lit
 								child.Position = pos
@@ -396,20 +396,20 @@ func (p *Parser) Parse() (*Content, error) {
 					log.Print("\n\n\nWe're in a Paragraph with Text now:\n\n")
 
 					p.unscan()
-					var verseNum *Content
+					var verseNum *Node
 					for _, c := range markerV.Children {
 						if c.Type == "versenumber" {
 							verseNum = c
 							break
 						}
 					}
-					newVerseNum := &Content{Type: "versenumber", Value: verseNum.Value, Children: verseNum.Children}
-					markerPV := &Content{}
+					newVerseNum := &Node{Type: "versenumber", Value: verseNum.Value, Children: verseNum.Children}
+					markerPV := &Node{}
 					markerPV.Type = "marker"
 					markerPV.Value = "\\v"
 					markerPV.Children = append(markerPV.Children, newVerseNum)
 					// Add a new "sub-verse" marker
-					markerSV := &Content{Type: "subverse", Value: "Sub-verse paragraph", Children: nil}
+					markerSV := &Node{Type: "subverse", Value: "Sub-verse paragraph", Children: nil}
 					markerPV.Children = append(markerPV.Children, markerSV)
 					for {
 						tok, lit, pos = p.scanIgnoreWhitespace()
@@ -423,7 +423,7 @@ func (p *Parser) Parse() (*Content, error) {
 							p.unscan()
 							break
 							log.Print("Found Descriptive Title marker.")
-							marker := &Content{}
+							marker := &Node{}
 							marker.Type = "marker"
 							marker.Value = lit
 							marker.Position = pos
@@ -434,7 +434,7 @@ func (p *Parser) Parse() (*Content, error) {
 									p.unscan()
 									break
 								} else {
-									child := &Content{}
+									child := &Node{}
 									child.Type = "description"
 									child.Value = lit
 									child.Position = pos
@@ -443,7 +443,7 @@ func (p *Parser) Parse() (*Content, error) {
 							}
 						} else if tok == MarkerSP {
 							log.Print("Found Speaker Identification marker.")
-							childA := &Content{}
+							childA := &Node{}
 							childA.Type = "marker"
 							childA.Value = lit
 							childA.Position = pos
@@ -454,7 +454,7 @@ func (p *Parser) Parse() (*Content, error) {
 									p.unscan()
 									break
 								} else {
-									childT := &Content{}
+									childT := &Node{}
 									childT.Type = "speaker"
 									childT.Value = lit
 									childT.Position = pos
@@ -463,21 +463,21 @@ func (p *Parser) Parse() (*Content, error) {
 							}
 						} else if tok == MarkerQ1 {
 							log.Print("Found Q1 marker.")
-							childA := &Content{}
+							childA := &Node{}
 							childA.Type = "marker"
 							childA.Value = lit
 							childA.Position = pos
 							markerPV.Children = append(markerPV.Children, childA)
 						} else if tok == MarkerQ2 {
 							log.Print("Found Q2 marker.")
-							childA := &Content{}
+							childA := &Node{}
 							childA.Type = "marker"
 							childA.Value = lit
 							childA.Position = pos
 							markerPV.Children = append(markerPV.Children, childA)
 						} else if tok == MarkerWJ {
 							log.Print("Found Jesus' Words marker.")
-							childA := &Content{}
+							childA := &Node{}
 							childA.Type = "marker"
 							childA.Value = lit
 							childA.Position = pos
@@ -489,7 +489,7 @@ func (p *Parser) Parse() (*Content, error) {
 									//p.unscan()
 									break
 								} else {
-									childT := &Content{}
+									childT := &Node{}
 									childT.Type = "text"
 									childT.Value = lit
 									childT.Position = pos
@@ -498,7 +498,7 @@ func (p *Parser) Parse() (*Content, error) {
 							}
 						} else if tok == MarkerAdd {
 							log.Print("Found Add marker.")
-							childA := &Content{}
+							childA := &Node{}
 							childA.Type = "marker"
 							childA.Value = lit
 							childA.Position = pos
@@ -511,7 +511,7 @@ func (p *Parser) Parse() (*Content, error) {
 									break
 								} else {
 									log.Print("Found Add subject text.")
-									childT := &Content{}
+									childT := &Node{}
 									childT.Type = "text"
 									childT.Value = lit
 									childT.Position = pos
@@ -520,7 +520,7 @@ func (p *Parser) Parse() (*Content, error) {
 							}
 						} else if tok == MarkerW {
 							log.Print("Found Wordlist marker.")
-							childW := &Content{}
+							childW := &Node{}
 							childW.Type = "marker"
 							childW.Value = lit
 							childW.Position = pos
@@ -532,14 +532,14 @@ func (p *Parser) Parse() (*Content, error) {
 									break
 								} else if tok == Citation {
 									log.Print("Found Citation metadata.")
-									childC := &Content{}
+									childC := &Node{}
 									childC.Type = "citation"
 									childC.Value = lit
 									childC.Position = pos
 									childW.Children = append(childW.Children, childC)
 								} else {
 									log.Print("Found Citation subject text.")
-									childT := &Content{}
+									childT := &Node{}
 									childT.Type = "text"
 									childT.Value = lit
 									childT.Position = pos
@@ -549,7 +549,7 @@ func (p *Parser) Parse() (*Content, error) {
 							}
 						} else if tok == MarkerF {
 							log.Print("Found Footnote marker.")
-							childW := &Content{}
+							childW := &Node{}
 							childW.Type = "marker"
 							childW.Value = lit
 							childW.Position = pos
@@ -564,7 +564,7 @@ func (p *Parser) Parse() (*Content, error) {
 							}
 						} else if tok == MarkerX {
 							log.Print("Found Cross-Reference marker.")
-							childW := &Content{}
+							childW := &Node{}
 							childW.Type = "marker"
 							childW.Value = lit
 							childW.Position = pos
@@ -578,7 +578,7 @@ func (p *Parser) Parse() (*Content, error) {
 								}
 							}
 						} else {
-							childT := &Content{}
+							childT := &Node{}
 							childT.Type = "text"
 							childT.Value = lit
 							childT.Position = pos
@@ -591,9 +591,9 @@ func (p *Parser) Parse() (*Content, error) {
 			}
 		} else if tok == MarkerV || tok == MarkerQ1 {
 			haveQ1Carryover := false
-			q1Carryover := &Content{}
+			q1Carryover := &Node{}
 			log.Print("\n\n\n\nCreating fake Paragraph marker.")
-			markerP := &Content{}
+			markerP := &Node{}
 			markerP.Type = "marker"
 			markerP.Value = "\\p"
 			book.Children = append(book.Children, markerP)
@@ -606,7 +606,7 @@ func (p *Parser) Parse() (*Content, error) {
 					break
 				} else if tok == MarkerD {
 					log.Print("Found Descriptive Title marker.")
-					marker := &Content{}
+					marker := &Node{}
 					marker.Type = "marker"
 					marker.Value = lit
 					marker.Position = pos
@@ -617,7 +617,7 @@ func (p *Parser) Parse() (*Content, error) {
 							p.unscan()
 							break
 						} else {
-							child := &Content{}
+							child := &Node{}
 							child.Type = "description"
 							child.Value = lit
 							child.Position = pos
@@ -626,7 +626,7 @@ func (p *Parser) Parse() (*Content, error) {
 					}
 				} else if tok == MarkerSP {
 					log.Print("Found Speaker Identification marker.")
-					child := &Content{}
+					child := &Node{}
 					child.Type = "marker"
 					child.Value = lit
 					child.Position = pos
@@ -637,7 +637,7 @@ func (p *Parser) Parse() (*Content, error) {
 							p.unscan()
 							break
 						} else {
-							childT := &Content{}
+							childT := &Node{}
 							childT.Type = "speaker"
 							childT.Value = lit
 							childT.Position = pos
@@ -646,7 +646,7 @@ func (p *Parser) Parse() (*Content, error) {
 					}
 				} else if tok == MarkerQS {
 					log.Print("Found Selah marker.")
-					childW := &Content{}
+					childW := &Node{}
 					childW.Type = "marker"
 					childW.Value = lit
 					childW.Position = pos
@@ -656,7 +656,7 @@ func (p *Parser) Parse() (*Content, error) {
 						if tok == EndMarkerQS {
 							break
 						} else {
-							childT := &Content{}
+							childT := &Node{}
 							childT.Type = "text"
 							childT.Value = lit
 							childT.Position = pos
@@ -665,7 +665,7 @@ func (p *Parser) Parse() (*Content, error) {
 					}
 				} else if tok == MarkerQ1 {
 					log.Print("Found Q1 marker.")
-					child := &Content{}
+					child := &Node{}
 					child.Type = "marker"
 					child.Value = lit
 					child.Position = pos
@@ -678,14 +678,14 @@ func (p *Parser) Parse() (*Content, error) {
 					}
 				} else if tok == MarkerV {
 					log.Print("\n\nFound Verse marker.")
-					markerV = &Content{}
+					markerV = &Node{}
 					markerV.Type = "marker"
 					markerV.Value = lit
 					markerV.Position = pos
 					markerP.Children = append(markerP.Children, markerV)
 					tok, lit, pos = p.scanIgnoreWhitespace()
 					if tok == Number {
-						child := &Content{}
+						child := &Node{}
 						child.Type = "versenumber"
 						child.Value = lit
 						child.Position = pos
@@ -696,7 +696,7 @@ func (p *Parser) Parse() (*Content, error) {
 						if haveQ1Carryover {
 							markerV.Children = append(markerV.Children, q1Carryover)
 							haveQ1Carryover = false
-							q1Carryover = &Content{}
+							q1Carryover = &Node{}
 						}
 						for {
 							tok, lit, pos = p.scanIgnoreWhitespace()
@@ -706,7 +706,7 @@ func (p *Parser) Parse() (*Content, error) {
 								break
 							} else if tok == MarkerQS {
 								log.Print("Found Selah marker.")
-								childW := &Content{}
+								childW := &Node{}
 								childW.Type = "marker"
 								childW.Value = lit
 								childW.Position = pos
@@ -716,7 +716,7 @@ func (p *Parser) Parse() (*Content, error) {
 									if tok == EndMarkerQS {
 										break
 									} else {
-										childT := &Content{}
+										childT := &Node{}
 										childT.Type = "text"
 										childT.Value = lit
 										childT.Position = pos
@@ -725,7 +725,7 @@ func (p *Parser) Parse() (*Content, error) {
 								}
 							} else if tok == MarkerSP {
 								log.Print("Found Speaker Identification marker.")
-								childA := &Content{}
+								childA := &Node{}
 								childA.Type = "marker"
 								childA.Value = lit
 								childA.Position = pos
@@ -736,7 +736,7 @@ func (p *Parser) Parse() (*Content, error) {
 										p.unscan()
 										break
 									} else {
-										childT := &Content{}
+										childT := &Node{}
 										childT.Type = "speaker"
 										childT.Value = lit
 										childT.Position = pos
@@ -745,7 +745,7 @@ func (p *Parser) Parse() (*Content, error) {
 								}
 							} else if tok == MarkerQ1 {
 								log.Print("Found Q1 marker.")
-								childA := &Content{}
+								childA := &Node{}
 								childA.Type = "marker"
 								childA.Value = lit
 								childA.Position = pos
@@ -761,14 +761,14 @@ func (p *Parser) Parse() (*Content, error) {
 								}
 							} else if tok == MarkerQ2 {
 								log.Print("Found Q2 marker.")
-								childA := &Content{}
+								childA := &Node{}
 								childA.Type = "marker"
 								childA.Value = lit
 								childA.Position = pos
 								markerV.Children = append(markerV.Children, childA)
 							} else if tok == MarkerWJ {
 								log.Print("Found Jesus' Words markerV.")
-								childA := &Content{}
+								childA := &Node{}
 								childA.Type = "marker"
 								childA.Value = lit
 								childA.Position = pos
@@ -780,7 +780,7 @@ func (p *Parser) Parse() (*Content, error) {
 										//p.unscan()
 										break
 									} else {
-										childT := &Content{}
+										childT := &Node{}
 										childT.Type = "text"
 										childT.Value = lit
 										childT.Position = pos
@@ -789,7 +789,7 @@ func (p *Parser) Parse() (*Content, error) {
 								}
 							} else if tok == MarkerAdd {
 								log.Print("Found Add marker.")
-								childA := &Content{}
+								childA := &Node{}
 								childA.Type = "marker"
 								childA.Value = lit
 								childA.Position = pos
@@ -802,7 +802,7 @@ func (p *Parser) Parse() (*Content, error) {
 										break
 									} else {
 										log.Print("Found Add subject text.")
-										childT := &Content{}
+										childT := &Node{}
 										childT.Type = "text"
 										childT.Value = lit
 										childT.Position = pos
@@ -811,7 +811,7 @@ func (p *Parser) Parse() (*Content, error) {
 								}
 							} else if tok == MarkerW {
 								log.Print("Found Wordlist marker.")
-								childW := &Content{}
+								childW := &Node{}
 								childW.Type = "marker"
 								childW.Value = lit
 								childW.Position = pos
@@ -823,14 +823,14 @@ func (p *Parser) Parse() (*Content, error) {
 										break
 									} else if tok == Citation {
 										log.Print("Found Citation metadata.")
-										childC := &Content{}
+										childC := &Node{}
 										childC.Type = "citation"
 										childC.Value = lit
 										childC.Position = pos
 										childW.Children = append(childW.Children, childC)
 									} else {
 										log.Print("Found Citation subject text.")
-										childT := &Content{}
+										childT := &Node{}
 										childT.Type = "text"
 										childT.Value = lit
 										childT.Position = pos
@@ -840,7 +840,7 @@ func (p *Parser) Parse() (*Content, error) {
 								}
 							} else if tok == MarkerF {
 								log.Print("Found Footnote marker.")
-								childW := &Content{}
+								childW := &Node{}
 								childW.Type = "marker"
 								childW.Value = lit
 								childW.Position = pos
@@ -855,7 +855,7 @@ func (p *Parser) Parse() (*Content, error) {
 								}
 							} else if tok == MarkerX {
 								log.Print("Found Cross-Reference marker.")
-								childW := &Content{}
+								childW := &Node{}
 								childW.Type = "marker"
 								childW.Value = lit
 								childW.Position = pos
@@ -869,7 +869,7 @@ func (p *Parser) Parse() (*Content, error) {
 									}
 								}
 							} else {
-								child := &Content{}
+								child := &Node{}
 								child.Type = "text"
 								child.Value = lit
 								child.Position = pos
@@ -886,20 +886,20 @@ func (p *Parser) Parse() (*Content, error) {
 					log.Print("\n\n\nWe're in a Paragraph with Text now:\n\n")
 
 					p.unscan()
-					var verseNum *Content
+					var verseNum *Node
 					for _, c := range markerV.Children {
 						if c.Type == "versenumber" {
 							verseNum = c
 							break
 						}
 					}
-					newVerseNum := &Content{Type: "versenumber", Value: verseNum.Value, Children: verseNum.Children}
-					markerPV := &Content{}
+					newVerseNum := &Node{Type: "versenumber", Value: verseNum.Value, Children: verseNum.Children}
+					markerPV := &Node{}
 					markerPV.Type = "marker"
 					markerPV.Value = "\\v"
 					markerPV.Children = append(markerPV.Children, newVerseNum)
 					// Add a new "sub-verse" marker
-					markerSV := &Content{Type: "subverse", Value: "Sub-verse paragraph", Children: nil}
+					markerSV := &Node{Type: "subverse", Value: "Sub-verse paragraph", Children: nil}
 					markerPV.Children = append(markerPV.Children, markerSV)
 					for {
 						tok, lit, pos = p.scanIgnoreWhitespace()
@@ -910,7 +910,7 @@ func (p *Parser) Parse() (*Content, error) {
 							break
 						} else if tok == MarkerD {
 							log.Print("Found Descriptive Title marker.")
-							marker := &Content{}
+							marker := &Node{}
 							marker.Type = "marker"
 							marker.Value = lit
 							marker.Position = pos
@@ -921,7 +921,7 @@ func (p *Parser) Parse() (*Content, error) {
 									p.unscan()
 									break
 								} else {
-									child := &Content{}
+									child := &Node{}
 									child.Type = "description"
 									child.Value = lit
 									child.Position = pos
@@ -930,21 +930,21 @@ func (p *Parser) Parse() (*Content, error) {
 							}
 						} else if tok == MarkerQ1 {
 							log.Print("Found Q1 marker.")
-							childA := &Content{}
+							childA := &Node{}
 							childA.Type = "marker"
 							childA.Value = lit
 							childA.Position = pos
 							markerPV.Children = append(markerPV.Children, childA)
 						} else if tok == MarkerQ2 {
 							log.Print("Found Q2 marker.")
-							childA := &Content{}
+							childA := &Node{}
 							childA.Type = "marker"
 							childA.Value = lit
 							childA.Position = pos
 							markerPV.Children = append(markerPV.Children, childA)
 						} else if tok == MarkerWJ {
 							log.Print("Found Jesus' Words marker.")
-							childA := &Content{}
+							childA := &Node{}
 							childA.Type = "marker"
 							childA.Value = lit
 							childA.Position = pos
@@ -956,7 +956,7 @@ func (p *Parser) Parse() (*Content, error) {
 									//p.unscan()
 									break
 								} else {
-									childT := &Content{}
+									childT := &Node{}
 									childT.Type = "text"
 									childT.Value = lit
 									childT.Position = pos
@@ -965,7 +965,7 @@ func (p *Parser) Parse() (*Content, error) {
 							}
 						} else if tok == MarkerAdd {
 							log.Print("Found Add marker.")
-							childA := &Content{}
+							childA := &Node{}
 							childA.Type = "marker"
 							childA.Value = lit
 							childA.Position = pos
@@ -978,7 +978,7 @@ func (p *Parser) Parse() (*Content, error) {
 									break
 								} else {
 									log.Print("Found Add subject text.")
-									childT := &Content{}
+									childT := &Node{}
 									childT.Type = "text"
 									childT.Value = lit
 									childT.Position = pos
@@ -987,7 +987,7 @@ func (p *Parser) Parse() (*Content, error) {
 							}
 						} else if tok == MarkerW {
 							log.Print("Found Wordlist marker.")
-							childW := &Content{}
+							childW := &Node{}
 							childW.Type = "marker"
 							childW.Value = lit
 							childW.Position = pos
@@ -999,14 +999,14 @@ func (p *Parser) Parse() (*Content, error) {
 									break
 								} else if tok == Citation {
 									log.Print("Found Citation metadata.")
-									childC := &Content{}
+									childC := &Node{}
 									childC.Type = "citation"
 									childC.Value = lit
 									childC.Position = pos
 									childW.Children = append(childW.Children, childC)
 								} else {
 									log.Print("Found Citation subject text.")
-									childT := &Content{}
+									childT := &Node{}
 									childT.Type = "text"
 									childT.Value = lit
 									childT.Position = pos
@@ -1016,7 +1016,7 @@ func (p *Parser) Parse() (*Content, error) {
 							}
 						} else if tok == MarkerF {
 							log.Print("Found Footnote marker.")
-							childW := &Content{}
+							childW := &Node{}
 							childW.Type = "marker"
 							childW.Value = lit
 							childW.Position = pos
@@ -1031,7 +1031,7 @@ func (p *Parser) Parse() (*Content, error) {
 							}
 						} else if tok == MarkerX {
 							log.Print("Found Cross-Reference marker.")
-							childW := &Content{}
+							childW := &Node{}
 							childW.Type = "marker"
 							childW.Value = lit
 							childW.Position = pos
@@ -1045,7 +1045,7 @@ func (p *Parser) Parse() (*Content, error) {
 								}
 							}
 						} else {
-							childT := &Content{}
+							childT := &Node{}
 							childT.Type = "text"
 							childT.Value = lit
 							childT.Position = pos
@@ -1058,21 +1058,21 @@ func (p *Parser) Parse() (*Content, error) {
 			}
 		} else if tok == MarkerS {
 			log.Print("Found Section Heading marker.")
-			marker := &Content{}
+			marker := &Node{}
 			marker.Type = "marker"
 			marker.Value = lit
 			marker.Position = pos
 			book.Children = append(book.Children, marker)
 			/*} else if tok == MarkerV {
 			log.Print("Found Verse marker.")
-			marker := &Content{}
+			marker := &Node{}
 			marker.Type = "marker"
 			marker.Value = lit
 			marker.Position = pos
 			book.Children = append(book.Children, marker)
 			tok, lit, pos = p.scanIgnoreWhitespace()
 			if tok == Number {
-				child := &Content{}
+				child := &Node{}
 				child.Type = "versenumber"
 				child.Value = lit
 				child.Position = pos
@@ -1089,7 +1089,7 @@ func (p *Parser) Parse() (*Content, error) {
 						break
 					} else if tok == MarkerWJ {
 						log.Print("Found Jesus' Words marker.")
-						childA := &Content{}
+						childA := &Node{}
 						childA.Type = "marker"
 						childA.Value = lit
 						childA.Position = pos
@@ -1101,7 +1101,7 @@ func (p *Parser) Parse() (*Content, error) {
 								//p.unscan()
 								break
 							} else {
-								childT := &Content{}
+								childT := &Node{}
 								childT.Type = "text"
 								childT.Value = lit
 								childT.Position = pos
@@ -1110,7 +1110,7 @@ func (p *Parser) Parse() (*Content, error) {
 						}
 					} else if tok == MarkerAdd {
 						log.Print("Found Add marker.")
-						childA := &Content{}
+						childA := &Node{}
 						childA.Type = "marker"
 						childA.Value = lit
 						childA.Position = pos
@@ -1123,7 +1123,7 @@ func (p *Parser) Parse() (*Content, error) {
 								break
 							} else {
 								log.Print("Found Add subject text.")
-								childT := &Content{}
+								childT := &Node{}
 								childT.Type = "text"
 								childT.Value = lit
 								childT.Position = pos
@@ -1133,7 +1133,7 @@ func (p *Parser) Parse() (*Content, error) {
 					} else if tok == MarkerW {
 						log.Print("Found Wordlist marker.")
 						markerEnd := false
-						childW := &Content{}
+						childW := &Node{}
 						childW.Type = "marker"
 						childW.Value = lit
 						childW.Position = pos
@@ -1147,14 +1147,14 @@ func (p *Parser) Parse() (*Content, error) {
 								break
 							} else if tok == Citation {
 								log.Print("Found Citation metadata.")
-								childC := &Content{}
+								childC := &Node{}
 								childC.Type = "citation"
 								childC.Value = lit
 								childC.Position = pos
 								childW.Children = append(childW.Children, childC)
 							} else {
 								log.Print("Found Citation subject text.")
-								childT := &Content{}
+								childT := &Node{}
 								childT.Type = "text"
 								childT.Value = lit
 								childT.Position = pos
@@ -1167,7 +1167,7 @@ func (p *Parser) Parse() (*Content, error) {
 						}
 					} else if tok == MarkerF {
 						log.Print("Found Footnote marker.")
-						childW := &Content{}
+						childW := &Node{}
 						childW.Type = "marker"
 						childW.Value = lit
 						childW.Position = pos
@@ -1182,7 +1182,7 @@ func (p *Parser) Parse() (*Content, error) {
 						}
 					} else if tok == MarkerX {
 						log.Print("Found Cross-Reference marker.")
-						childW := &Content{}
+						childW := &Node{}
 						childW.Type = "marker"
 						childW.Value = lit
 						childW.Position = pos
@@ -1196,7 +1196,7 @@ func (p *Parser) Parse() (*Content, error) {
 							}
 						}
 					} else {
-						child := &Content{}
+						child := &Node{}
 						child.Type = "text"
 						child.Value = lit
 						child.Position = pos

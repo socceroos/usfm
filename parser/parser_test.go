@@ -5,29 +5,29 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/baijum/usfm/parser"
+	"github.com/socceroos/usfm/parser"
 )
 
-// Ensure the parser can parse strings into Content ASTs.
+// Ensure the parser can parse strings into Node ASTs.
 func TestParser(t *testing.T) {
 	var tests = []struct {
-		s       string
-		content *parser.Content
-		err     string
+		s    string
+		Node *parser.Node
+		err  string
 	}{
 		{
 			s: `\id RUT T1 T2`,
-			content: &parser.Content{
+			Node: &parser.Node{
 				Type:  "book",
 				Value: "RUT",
-				Children: []*parser.Content{
-					&parser.Content{
+				Children: []*parser.Node{
+					&parser.Node{
 						Type:  "marker",
 						Value: "\\id",
-						Children: []*parser.Content{
-							&parser.Content{Type: "bookcode", Value: "RUT"},
-							&parser.Content{Type: "text", Value: "T1"},
-							&parser.Content{Type: "text", Value: "T2"},
+						Children: []*parser.Node{
+							&parser.Node{Type: "bookcode", Value: "RUT"},
+							&parser.Node{Type: "text", Value: "T1"},
+							&parser.Node{Type: "text", Value: "T2"},
 						},
 					},
 				},
@@ -35,18 +35,18 @@ func TestParser(t *testing.T) {
 		},
 		{
 			s: `\ide 65001 - Unicode (UTF-8)`,
-			content: &parser.Content{
+			Node: &parser.Node{
 				Type:  "book",
 				Value: "",
-				Children: []*parser.Content{
-					&parser.Content{
+				Children: []*parser.Node{
+					&parser.Node{
 						Type:  "marker",
 						Value: "\\ide",
-						Children: []*parser.Content{
-							&parser.Content{Type: "text", Value: "65001"},
-							&parser.Content{Type: "text", Value: "-"},
-							&parser.Content{Type: "text", Value: "Unicode"},
-							&parser.Content{Type: "text", Value: "(UTF-8)"},
+						Children: []*parser.Node{
+							&parser.Node{Type: "text", Value: "65001"},
+							&parser.Node{Type: "text", Value: "-"},
+							&parser.Node{Type: "text", Value: "Unicode"},
+							&parser.Node{Type: "text", Value: "(UTF-8)"},
 						},
 					},
 				},
@@ -54,15 +54,15 @@ func TestParser(t *testing.T) {
 		},
 		{
 			s: `\c 42`,
-			content: &parser.Content{
+			Node: &parser.Node{
 				Type:  "book",
 				Value: "",
-				Children: []*parser.Content{
-					&parser.Content{
+				Children: []*parser.Node{
+					&parser.Node{
 						Type:  "marker",
 						Value: "\\c",
-						Children: []*parser.Content{
-							&parser.Content{Type: "chapternumber", Value: "42"},
+						Children: []*parser.Node{
+							&parser.Node{Type: "chapternumber", Value: "42"},
 						},
 					},
 				},
@@ -71,17 +71,17 @@ func TestParser(t *testing.T) {
 
 		{
 			s: `\v 1 T1 200`,
-			content: &parser.Content{
+			Node: &parser.Node{
 				Type:  "book",
 				Value: "",
-				Children: []*parser.Content{
-					&parser.Content{
+				Children: []*parser.Node{
+					&parser.Node{
 						Type:  "marker",
 						Value: "\\v",
-						Children: []*parser.Content{
-							&parser.Content{Type: "versenumber", Value: "1"},
-							&parser.Content{Type: "text", Value: "T1"},
-							&parser.Content{Type: "text", Value: "200"},
+						Children: []*parser.Node{
+							&parser.Node{Type: "versenumber", Value: "1"},
+							&parser.Node{Type: "text", Value: "T1"},
+							&parser.Node{Type: "text", Value: "200"},
 						},
 					},
 				},
@@ -89,49 +89,49 @@ func TestParser(t *testing.T) {
 		},
 		{
 			s: `\id RUT T1 T2 \ide UTF-8 \c 1 \v 1 T3 200 \v 28 T4 T5`,
-			content: &parser.Content{
+			Node: &parser.Node{
 				Type:  "book",
 				Value: "RUT",
-				Children: []*parser.Content{
-					&parser.Content{
+				Children: []*parser.Node{
+					&parser.Node{
 						Type:  "marker",
 						Value: "\\id",
-						Children: []*parser.Content{
-							&parser.Content{Type: "bookcode", Value: "RUT"},
-							&parser.Content{Type: "text", Value: "T1"},
-							&parser.Content{Type: "text", Value: "T2"},
+						Children: []*parser.Node{
+							&parser.Node{Type: "bookcode", Value: "RUT"},
+							&parser.Node{Type: "text", Value: "T1"},
+							&parser.Node{Type: "text", Value: "T2"},
 						},
 					},
-					&parser.Content{
+					&parser.Node{
 						Type:  "marker",
 						Value: "\\ide",
-						Children: []*parser.Content{
-							&parser.Content{Type: "text", Value: "UTF-8"},
+						Children: []*parser.Node{
+							&parser.Node{Type: "text", Value: "UTF-8"},
 						},
 					},
-					&parser.Content{
+					&parser.Node{
 						Type:  "marker",
 						Value: "\\c",
-						Children: []*parser.Content{
-							&parser.Content{Type: "chapternumber", Value: "1"},
+						Children: []*parser.Node{
+							&parser.Node{Type: "chapternumber", Value: "1"},
 						},
 					},
-					&parser.Content{
+					&parser.Node{
 						Type:  "marker",
 						Value: "\\v",
-						Children: []*parser.Content{
-							&parser.Content{Type: "versenumber", Value: "1"},
-							&parser.Content{Type: "text", Value: "T3"},
-							&parser.Content{Type: "text", Value: "200"},
+						Children: []*parser.Node{
+							&parser.Node{Type: "versenumber", Value: "1"},
+							&parser.Node{Type: "text", Value: "T3"},
+							&parser.Node{Type: "text", Value: "200"},
 						},
 					},
-					&parser.Content{
+					&parser.Node{
 						Type:  "marker",
 						Value: "\\v",
-						Children: []*parser.Content{
-							&parser.Content{Type: "versenumber", Value: "28"},
-							&parser.Content{Type: "text", Value: "T4"},
-							&parser.Content{Type: "text", Value: "T5"},
+						Children: []*parser.Node{
+							&parser.Node{Type: "versenumber", Value: "28"},
+							&parser.Node{Type: "text", Value: "T4"},
+							&parser.Node{Type: "text", Value: "T5"},
 						},
 					},
 				},
@@ -144,11 +144,14 @@ func TestParser(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		content, err := parser.NewParser(strings.NewReader(tt.s)).Parse()
+		// Init Parser
+		in := strings.NewReader(tt.s)
+		Node, err := parser.NewParser(in).Parse()
+
 		if !reflect.DeepEqual(tt.err, errstring(err)) {
 			t.Errorf("%d. %q: error mismatch:\n  exp=%s\n  got=%s\n\n", i, tt.s, tt.err, err)
-		} else if tt.err == "" && !reflect.DeepEqual(tt.content, content) {
-			t.Errorf("%d. %q\n\ncontent mismatch:\n\nexp=%#v\n\ngot=%#v\n\n", i, tt.s, tt.content, content)
+		} else if tt.err == "" && !reflect.DeepEqual(tt.Node, Node) {
+			t.Errorf("%d. %q\n\nNode mismatch:\n\nexp=%#v\n\ngot=%#v\n\n", i, tt.s, tt.Node, Node)
 		}
 	}
 }

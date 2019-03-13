@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/baijum/usfm/parser"
+	"github.com/socceroos/usfm/parser"
 )
 
 // Ensure the scanner can scan tokens correctly.
@@ -26,13 +26,14 @@ func TestScan(t *testing.T) {
 		{s: `\id`, tok: parser.MarkerID, lit: `\id`},
 		{s: `\imte`, tok: parser.MarkerImte1, lit: `\imte`},
 		{s: `\imte1`, tok: parser.MarkerImte1, lit: `\imte1`},
-		{s: "123", tok: parser.Number, lit: "123"},
+		{s: `\v`, tok: parser.MarkerV, lit: `\v`},
+		{s: `123`, tok: parser.Number, lit: `123`},
 		{s: "Jesus", tok: parser.Text, lit: "Jesus"},
 	}
 
 	for i, tt := range tests {
 		s := parser.NewScanner(strings.NewReader(tt.s))
-		tok, lit := s.Scan()
+		tok, lit, _ := s.Scan()
 		if tt.tok != tok {
 			t.Errorf("%d. %q token mismatch: exp=%q got=%q <%q>", i, tt.s, tt.tok, tok, lit)
 		} else if tt.lit != lit {

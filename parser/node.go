@@ -2,7 +2,7 @@ package parser
 
 // Content represents a part of source
 // It could be a marker or text
-type Content struct {
+type Node struct {
 	// Type refer the type content (Verse, Text, Paragraph etc.)
 	Type string
 
@@ -13,5 +13,5 @@ type Content struct {
 	Position int
 
 	// Children point to the child contents (empty if no child)
-	Children []*Content
+	Children []*Node
 }
