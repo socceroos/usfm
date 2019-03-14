@@ -8,7 +8,7 @@ import (
 )
 
 // Ensure the scanner can scan tokens correctly.
-func TestScan(t *testing.T) {
+func TestScanner(t *testing.T) {
 	var tests = []struct {
 		s   string
 		tok parser.Token
@@ -34,6 +34,7 @@ func TestScan(t *testing.T) {
 	for i, tt := range tests {
 		s := parser.NewScanner(strings.NewReader(tt.s))
 		tok, lit, _ := s.Scan()
+
 		if tt.tok != tok {
 			t.Errorf("%d. %q token mismatch: exp=%q got=%q <%q>", i, tt.s, tt.tok, tok, lit)
 		} else if tt.lit != lit {

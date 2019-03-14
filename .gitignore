@@ -1,3 +1,6 @@
 usfm
 *~
 *.test
+.DS_Store
+*.usfm
+*.json
