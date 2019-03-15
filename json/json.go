@@ -2,7 +2,6 @@ package json
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -71,8 +70,14 @@ func (j *JSON) AppendUsfmIndex(path string, startKey int, startByte int64) (endK
 	content, _ := parser.Parse()
 
 	endKey = j.mapContent(content, startKey, startByte)
+
 	fi, _ := in.Stat()
 	fileSize = fi.Size()
+
+	// Update last item ending byte index
+	lastItem := j.Index[endKey]
+	lastItem.End = fileSize
+	j.Index[endKey] = lastItem
 
 	return endKey, fileSize
 }
@@ -84,7 +89,7 @@ func (j *JSON) mapContent(in *parser.Content, key int, byteStart int64) int {
 	ch := indexItem{}
 	book := indexItem{}
 	for _, row := range in.Children {
-		fmt.Printf("row type %s %s\n", row.Type, row.Value)
+		// fmt.Printf("row type %s %s\n", row.Type, row.Value)
 
 		if row.Value == "\\c" {
 			// Chapter
@@ -115,53 +120,47 @@ func (j *JSON) mapContent(in *parser.Content, key int, byteStart int64) int {
 				Start: int64(row.Position) + byteStart,
 			}
 			out[key] = book
-		} else if row.Value == "\\p" || row.Value == "\\nb" || row.Value == "\\m" {
-			// Paragraph
-			// Search for verses within paragraph
-			for _, v := range row.Children {
-				if v.Value == "\\v" {
-					verse++
-					isSubVerse := false
+		} else if row.Value == "\\v" {
+			isSubVerse := false
 
-					for _, vC := range v.Children {
-						if vC.Type == "versenumber" {
-							var err error
-							verse, err = strconv.Atoi(vC.Value)
-							if err != nil {
-								log.Printf("Error: %v", err)
-							}
-						} else if vC.Type == "subverse" {
-							isSubVerse = true
-						}
+			for _, vC := range row.Children {
+				if vC.Type == "versenumber" {
+					var err error
+					verse, err = strconv.Atoi(vC.Value)
+					if err != nil {
+						log.Println(row)
+						log.Printf("%s Error: %v", vC.Value, err)
 					}
-
-					if !isSubVerse {
-						key++
-					}
-
-					for _, vC := range v.Children {
-						if vC.Type == "marker" {
-							if vC.Value == "\\c" {
-								log.Println("chapter inside verse")
-								break
-							}
-						}
-					}
-					// log.Printf("Chapter %v Verse %v", chapter, verse)
-
-					// Close the verse
-					vC := indexItem{
-						Type:  Verse,
-						ID:    key,
-						OSIS:  ch.OSIS + "." + strconv.Itoa(verse),
-						Start: int64(v.Position) + byteStart,
-					}
-					out[key] = vC
-					prevItem := out[key-1]
-					prevItem.End = vC.Start - 1
-					out[key-1] = prevItem
+				} else if vC.Type == "subverse" {
+					isSubVerse = true
 				}
 			}
+
+			if !isSubVerse {
+				key++
+			}
+
+			for _, vC := range row.Children {
+				if vC.Type == "marker" {
+					if vC.Value == "\\c" {
+						break
+					}
+				}
+			}
+			// log.Printf("Chapter %v Verse %v", chapter, verse)
+
+			// Close the verse
+			vC := indexItem{
+				Type:  Verse,
+				ID:    key,
+				OSIS:  ch.OSIS + "." + strconv.Itoa(verse),
+				Start: int64(row.Position) + byteStart,
+			}
+
+			out[key] = vC
+			prevItem := out[key-1]
+			prevItem.End = vC.Start - 1
+			out[key-1] = prevItem
 		}
 	}
 	return key

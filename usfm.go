@@ -68,11 +68,13 @@ func main() {
 			translationInfoPath := filepath.Join(dir, folder.Name(), "00-translation.info")
 			folderFullPath := filepath.Join(dir, folder.Name())
 
-			fatUsfm, _ := os.OpenFile(fatUsfmPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-
 			// 2. Clean up generated files
 			// Try to delete previously generated file
 			os.Remove(fatIndexPath)
+			os.Remove(fatUsfmPath)
+
+			// Init new fat usfm file
+			fatUsfm, _ := os.OpenFile(fatUsfmPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
 			// Delete all json files that are previously generated
 			jsons, _ := filepath.Glob(filepath.Join(folderFullPath, "*.json"))

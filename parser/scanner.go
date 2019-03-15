@@ -3,7 +3,6 @@ package parser
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"io"
 	"strings"
 	"unicode"
@@ -74,12 +73,8 @@ func (s *Scanner) Scan() (tok Token, lit string, pos int) {
 		s.unread()
 		if isLetter(ch2) {
 			return s.scanText()
-		} else {
-			return s.scanNumber()
 		}
-	} else if isPipe(ch) {
-		s.unread()
-		return s.scanCitation()
+		return s.scanNumber()
 	}
 
 	switch ch {
@@ -137,60 +132,12 @@ func (s *Scanner) scanMarker() (tok Token, lit string, pos int) {
 		return MarkerIde, buf.String(), position
 	case `\IMTE`, `\IMTE1`:
 		return MarkerImte1, buf.String(), position
-	case `\D`:
-		return MarkerD, buf.String(), position
 	case `\H`:
 		return MarkerH, buf.String(), position
 	case `\C`:
 		return MarkerC, buf.String(), position
 	case `\V`:
 		return MarkerV, buf.String(), position
-	case `\P`, `¶`, `\M`, `\NB`:
-		return MarkerP, buf.String(), position
-	case `\B`:
-		return MarkerB, buf.String(), position
-	case `\S`, `\S1`:
-		return MarkerS, buf.String(), position
-	case `\SP`:
-		return MarkerSP, buf.String(), position
-	case `\Q1`:
-		return MarkerQ1, buf.String(), position
-	case `\Q2`:
-		return MarkerQ2, buf.String(), position
-	case `\QS`:
-		return MarkerQS, buf.String(), position
-	case `\QS*`:
-		return EndMarkerQS, buf.String(), position
-	case `\W`:
-		return MarkerW, buf.String(), position
-	case `\W*`:
-		return EndMarkerW, buf.String(), position
-	case `\WJ`:
-		return MarkerWJ, buf.String(), position
-	case `\WJ*`:
-		return EndMarkerWJ, buf.String(), position
-	case `\X`:
-		return MarkerX, buf.String(), position
-	case `\X*`:
-		return EndMarkerX, buf.String(), position
-	case `\XO`:
-		return MarkerXO, buf.String(), position
-	case `\XT`:
-		return MarkerXT, buf.String(), position
-	case `\F`:
-		return MarkerF, buf.String(), position
-	case `\F*`:
-		return EndMarkerF, buf.String(), position
-	case `\FR`:
-		return MarkerFR, buf.String(), position
-	case `\FT`:
-		return MarkerFT, buf.String(), position
-	case `\ADD`:
-		return MarkerAdd, buf.String(), position
-	case `\ADD*`:
-		return EndMarkerAdd, buf.String(), position
-	case `|`:
-		return Citation, buf.String(), position
 	}
 
 	return Illegal, buf.String(), position
@@ -217,28 +164,6 @@ func (s *Scanner) scanWhitespace() (tok Token, lit string, pos int) {
 	}
 
 	return Whitespace, buf.String(), s.Pos - buf.Len()
-}
-
-// scanCitation consumes the current rune and all contiguous runes until it hits the next Marker.
-func (s *Scanner) scanCitation() (tok Token, lit string, pos int) {
-	// Create a buffer and read the current character into it.
-	var buf bytes.Buffer
-	buf.WriteRune(s.read())
-
-	// Read every subsequent character into the buffer.
-	// Markers and EOF will cause the loop to exit.
-	for {
-		if ch := s.read(); ch == eof {
-			break
-		} else if isBackslash(ch) {
-			s.unread()
-			break
-		} else {
-			buf.WriteRune(ch)
-		}
-	}
-
-	return Citation, buf.String(), s.Pos - buf.Len()
 }
 
 // scanText consumes the current rune and all contiguous ident runes.
@@ -271,7 +196,6 @@ func (s *Scanner) scanNumber() (tok Token, lit string, pos int) {
 	// Create a buffer and read the current character into it.
 	var buf bytes.Buffer
 	buf.WriteRune(s.read())
-	fmt.Print(buf.String())
 	// Read every subsequent ident character into the buffer.
 	// Non-ident characters and EOF will cause the loop to exit.
 	for {

@@ -11,9 +11,9 @@ import (
 // Ensure the parser can parse strings into Content ASTs.
 func TestParser(t *testing.T) {
 	var tests = []struct {
-		s    string
+		s       string
 		Content *parser.Content
-		err  string
+		err     string
 	}{
 		{
 			s: `\id RUT T1 T2`,
