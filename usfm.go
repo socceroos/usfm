@@ -28,15 +28,16 @@ func main() {
 
 	// Parse command line args
 	flag.StringVar(&args.FmtSrc, "src-format", "usfm", "The source format")
-	flag.StringVar(&args.FmtDest, "dest-format", "json", "The destination format")
+	flag.StringVar(&args.FmtDest, "f", "index", "The destination format")
 	flag.StringVar(&args.Append, "a", "", "Append output index to an index.json file (filename with .json extension)")
-	flag.IntVar(&args.KeyStart, "key-start", 0, "Starting key (root bible map, 0 == beginning)")
-	flag.Int64Var(&args.ByteStart, "byte-start", 0, "Offset the bytecount start (for calculation of future-conjoined USFM files)")
+	flag.IntVar(&args.KeyStart, "k", 0, "Starting key (root bible map, 0 == beginning)")
+	flag.Int64Var(&args.ByteStart, "b", 0, "Offset the bytecount start (for calculation of future-conjoined USFM files)")
 	flag.StringVar(&args.Directory, "d", "./translations", "Generate outputs for all files in the target directory (handles key iteration based on basic sort of directory list).")
 	flag.Parse()
 
 	// Options for JSON conversion
 	dir := args.Directory
+	indexExtension := args.FmtDest
 
 	var folders []os.FileInfo
 	startKey := args.KeyStart
@@ -63,7 +64,7 @@ func main() {
 			fatJSON := json.NewJSON()
 
 			// 1. Generate file paths
-			fatIndexPath := filepath.Join(dir, folder.Name()+".json")
+			fatIndexPath := filepath.Join(dir, folder.Name()+"."+indexExtension)
 			fatUsfmPath := filepath.Join(dir, folder.Name()+".usfm")
 			translationInfoPath := filepath.Join(dir, folder.Name(), "00-translation.info")
 			folderFullPath := filepath.Join(dir, folder.Name())
@@ -76,11 +77,11 @@ func main() {
 			// Init new fat usfm file
 			fatUsfm, _ := os.OpenFile(fatUsfmPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
-			// Delete all json files that are previously generated
-			jsons, _ := filepath.Glob(filepath.Join(folderFullPath, "*.json"))
-			for _, json := range jsons {
-				os.Remove(json)
-			}
+			// // Delete all index files that are previously generated
+			// jsons, _ := filepath.Glob(filepath.Join(folderFullPath, "*."+indexExtension))
+			// for _, json := range jsons {
+			// 	os.Remove(json)
+			// }
 
 			// 3. Parse usfm files
 			// Iterate usfm files path under current sub-folder
@@ -94,22 +95,14 @@ func main() {
 				fatUsfm.Write(b)
 
 				// Parse and append json data into fat JSON file
-				appendJSONData(fatJSON, file, &startKey, &startByte)
+				log.Print(file)
+				startKey, startByte = fatJSON.AppendUsfmIndex(file, startKey, startByte)
 			}
 
 			fatJSON.WriteFile(fatIndexPath)
 			defer fatUsfm.Close()
 		}
 	}
-}
-
-func appendJSONData(j *json.JSON, inPath string, startKey *int, startByte *int64) {
-	// Create our out-file
-	ext := filepath.Ext(inPath)
-	bookPath := inPath[0:len(inPath)-len(ext)] + ".json"
-	log.Printf(bookPath)
-
-	*startKey, *startByte = j.AppendUsfmIndex(inPath, *startKey, *startByte)
 }
 
 // handleError if error not null, returns the format string

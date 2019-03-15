@@ -12,21 +12,22 @@ import (
 
 // Index Types
 const (
-	Chapter = "c"
-	Book    = "b"
-	Verse   = "v"
+	Chapter = "chapter"
+	Book    = "book"
+	Verse   = "verse"
 )
 
 // NewJSON return an empty Json Index file
 func NewJSON() *JSON {
-	json := &JSON{Index: map[int]indexItem{}}
+	json := &JSON{Index: []indexItem{}}
+	json.Index = append(json.Index, indexItem{})
 	return json
 }
 
 // JSON renderer
 type JSON struct {
-	Translation translation       `json:"translation"`
-	Index       map[int]indexItem `json:"index"`
+	Translation translation `json:"translation"`
+	Index       []indexItem `json:"index"`
 }
 
 type translation struct {
@@ -37,11 +38,11 @@ type translation struct {
 }
 
 type indexItem struct {
-	ID    int    `json:"i"` //id
-	OSIS  string `json:"o"` //osis
-	Start int64  `json:"s"` //start
-	End   int64  `json:"e"` //end
-	Type  string `json:"t"` //type
+	ID    int    `json:"rootID"` //id
+	OSIS  string `json:"osis"`   //osis
+	Start int64  `json:"start"`  //start
+	End   int64  `json:"end"`    //end
+	Type  string `json:"type"`   //type
 }
 
 // ReadTranslation read translation info from path
@@ -69,20 +70,20 @@ func (j *JSON) AppendUsfmIndex(path string, startKey int, startByte int64) (endK
 	parser := parser.NewParser(in)
 	content, _ := parser.Parse()
 
-	endKey = j.mapContent(content, startKey, startByte)
+	j.Index, endKey = j.mapContent(content, startKey, startByte)
 
 	fi, _ := in.Stat()
 	fileSize = fi.Size()
 
 	// Update last item ending byte index
-	lastItem := j.Index[endKey]
-	lastItem.End = fileSize
-	j.Index[endKey] = lastItem
+	lastItem := j.Index[len(j.Index)-1]
+	lastItem.End = fileSize + startByte
+	j.Index[len(j.Index)-1] = lastItem
 
-	return endKey, fileSize
+	return endKey, fileSize + startByte
 }
 
-func (j *JSON) mapContent(in *parser.Content, key int, byteStart int64) int {
+func (j *JSON) mapContent(in *parser.Content, key int, byteStart int64) ([]indexItem, int) {
 	out := j.Index
 
 	verse := 0
@@ -104,10 +105,11 @@ func (j *JSON) mapContent(in *parser.Content, key int, byteStart int64) int {
 				OSIS:  book.OSIS + "." + row.Children[0].Value,
 				Start: int64(row.Position) + byteStart,
 			}
-			out[key] = ch
-			prevItem := out[key-1]
+			out = append(out, ch)
+			// out[key] = ch
+			prevItem := out[len(out)-2]
 			prevItem.End = ch.Start - 1
-			out[key-1] = prevItem
+			out[len(out)-2] = prevItem
 			verse = 0
 		} else if row.Value == "\\h" {
 			// Header
@@ -119,18 +121,20 @@ func (j *JSON) mapContent(in *parser.Content, key int, byteStart int64) int {
 				OSIS:  in.Value,
 				Start: int64(row.Position) + byteStart,
 			}
-			out[key] = book
+			out = append(out, book)
+			// out[key] = book
 		} else if row.Value == "\\v" {
 			isSubVerse := false
 
 			for _, vC := range row.Children {
 				if vC.Type == "versenumber" {
-					var err error
-					verse, err = strconv.Atoi(vC.Value)
-					if err != nil {
-						log.Println(row)
-						log.Printf("%s Error: %v", vC.Value, err)
-					}
+					verse++
+					// var err error
+					// verse, err = strconv.Atoi(vC.Value)
+					// if err != nil {
+					// 	log.Println(row)
+					// 	log.Printf("%s Error: %v", vC.Value, err)
+					// }
 				} else if vC.Type == "subverse" {
 					isSubVerse = true
 				}
@@ -157,11 +161,12 @@ func (j *JSON) mapContent(in *parser.Content, key int, byteStart int64) int {
 				Start: int64(row.Position) + byteStart,
 			}
 
-			out[key] = vC
-			prevItem := out[key-1]
+			out = append(out, vC)
+			// out[key] = vC
+			prevItem := out[len(out)-2]
 			prevItem.End = vC.Start - 1
-			out[key-1] = prevItem
+			out[len(out)-2] = prevItem
 		}
 	}
-	return key
+	return out, key
 }

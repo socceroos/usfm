@@ -122,11 +122,6 @@ func (p *Parser) Parse() (*Content, error) {
 				}
 			}
 		} else if tok == MarkerV {
-			bug := false
-			if pos == 81913 {
-				bug = true
-				log.Print(lit)
-			}
 			markerV = &Content{}
 			markerV.Type = "marker"
 			markerV.Value = lit
@@ -135,10 +130,6 @@ func (p *Parser) Parse() (*Content, error) {
 			tok, lit, pos = p.scanIgnoreWhitespace()
 
 			if tok == Number {
-				if bug == true {
-					log.Print(lit)
-				}
-
 				child := &Content{}
 				child.Type = "versenumber"
 				child.Value = lit
@@ -190,7 +181,6 @@ func (p *Parser) scan() (tok Token, lit string, pos int) {
 
 // scanIgnoreWhitespace scans the next non-whitespace token.
 func (p *Parser) scanIgnoreWhitespace() (tok Token, lit string, pos int) {
-
 	for {
 		tok, lit, pos = p.scan()
 		if tok != Whitespace {
