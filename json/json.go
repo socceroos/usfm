@@ -76,9 +76,9 @@ func (j *JSON) AppendUsfmIndex(path string, startKey int, startByte int64) (endK
 	fileSize = fi.Size()
 
 	// Update last item ending byte index
-	lastItem := j.Index[len(j.Index)-1]
+	lastItem := j.Index[endKey]
 	lastItem.End = fileSize + startByte
-	j.Index[len(j.Index)-1] = lastItem
+	j.Index[endKey] = lastItem
 
 	return endKey, fileSize + startByte
 }
@@ -107,9 +107,9 @@ func (j *JSON) mapContent(in *parser.Content, key int, byteStart int64) ([]index
 			}
 			out = append(out, ch)
 			// out[key] = ch
-			prevItem := out[len(out)-2]
+			prevItem := out[key-1]
 			prevItem.End = ch.Start - 1
-			out[len(out)-2] = prevItem
+			out[key-1] = prevItem
 			verse = 0
 		} else if row.Value == "\\h" {
 			// Header
@@ -163,9 +163,9 @@ func (j *JSON) mapContent(in *parser.Content, key int, byteStart int64) ([]index
 
 			out = append(out, vC)
 			// out[key] = vC
-			prevItem := out[len(out)-2]
+			prevItem := out[key-1]
 			prevItem.End = vC.Start - 1
-			out[len(out)-2] = prevItem
+			out[key-1] = prevItem
 		}
 	}
 	return out, key
