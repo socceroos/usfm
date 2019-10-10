@@ -138,6 +138,7 @@ func formatContent(filePath string, writer *os.File) string {
 	content = strings.Replace(content, "¶", "", -1)
 	content = strings.Replace(content, "  ", " ", -1)
 	content = removeWTag(content)
+	content = removeWPlusTag(content)
 
 	writer.Write([]byte(content))
 	tempUSFM.Write([]byte(content))
@@ -166,6 +167,31 @@ func removeWTag(content string) string {
 				result += subStr
 			}
 		}
+	} else {
+		return content
+	}
+	return result
+}
+
+func removeWPlusTag(content string) string {
+	start, end := "\\+w ", "\\+w*" // just replace these with whatever you like...
+	sSplits := strings.Split(content, start)
+	result := ""
+
+	if len(sSplits) > 1 { // n splits = 1 means start char not found!
+		for _, subStr := range sSplits { // check each substring for end
+
+			ixEnd := strings.Index(subStr, end)
+			ixSplit := strings.Index(subStr, "|")
+			if ixEnd != -1 && ixSplit != -1 {
+				result += subStr[0:ixSplit]
+				result += subStr[ixEnd+4:(len(subStr))]
+			} else {
+				result += subStr
+			}
+		}
+	} else {
+		return content
 	}
 	return result
 }
