@@ -68,7 +68,10 @@ func (j *JSON) AppendUsfmIndex(path string, startKey int, startByte int64) (endK
 
 	// Init parser from reader stream
 	parser := parser.NewParser(in)
-	content, _ := parser.Parse()
+	content, err := parser.Parse()
+	if err != nil {
+		log.Printf("Error: %s", err)
+	}
 
 	j.Index, endKey = j.mapContent(content, startKey, startByte)
 

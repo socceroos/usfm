@@ -43,11 +43,12 @@ func (p *Parser) Parse() (*Content, error) {
 			book.Children = append(book.Children, marker)
 			tok, lit, pos = p.scanIgnoreWhitespace()
 			if tok == Text && len([]rune(lit)) == 3 {
+				osisCode := OsisAbbreviation[lit]
 				child := &Content{}
 				child.Type = "bookcode"
-				child.Value = lit
+				child.Value = osisCode
 				child.Position = pos
-				book.Value = lit
+				book.Value = osisCode
 				book.Position = pos
 				marker.Children = append(marker.Children, child)
 				for {
@@ -64,7 +65,7 @@ func (p *Parser) Parse() (*Content, error) {
 					}
 				}
 			} else {
-				return nil, fmt.Errorf("found %q, expected book code", lit)
+				return nil, fmt.Errorf("found %q, expected book code: %q %v", lit, tok, pos)
 			}
 		} else if tok == MarkerIde {
 			marker := &Content{}
