@@ -3,6 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="002c80ae-6262-4221-b967-742d2bc3afb3" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parser/scanner.go" beforeDir="false" afterPath="$PROJECT_DIR$/parser/scanner.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/translations/kjv/00-translation.info" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/usfm.go" beforeDir="false" afterPath="$PROJECT_DIR$/usfm.go" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -16,17 +18,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/usfm.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="276">
-              <caret line="171" column="3" selection-start-line="171" selection-start-column="3" selection-end-line="171" selection-end-column="3" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file:///usr/local/Cellar/go/1.10.1/libexec/src/os/file.go">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="151">
-              <caret line="270" selection-start-line="270" selection-end-line="270" />
+            <state relative-caret-position="-229">
+              <caret line="153" lean-forward="true" selection-start-line="153" selection-end-line="153" />
             </state>
           </provider>
         </entry>
@@ -34,8 +27,44 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/parser/parser.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2655">
-              <caret line="181" column="23" selection-start-line="181" selection-start-column="3" selection-end-line="181" selection-end-column="23" />
+            <state relative-caret-position="72">
+              <caret line="95" column="46" selection-start-line="95" selection-start-column="46" selection-end-line="95" selection-end-column="46" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/translations/esv.index.json">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="100">
+              <caret line="3287" column="21" selection-start-line="3287" selection-start-column="21" selection-end-line="3287" selection-end-column="21" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/parser/scanner.go">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="221">
+              <caret line="119" column="32" selection-start-line="119" selection-start-column="32" selection-end-line="119" selection-end-column="32" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/translations/esv/20-PSAesv.usfm.temp">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="86">
+              <caret line="12" column="42" lean-forward="true" selection-start-line="12" selection-start-column="42" selection-end-line="12" selection-end-column="42" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/translations/esv/20-PSAesv.usfm">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="180">
+              <caret line="12" column="43" selection-start-line="12" selection-start-column="43" selection-end-line="12" selection-end-column="43" />
             </state>
           </provider>
         </entry>
@@ -50,6 +79,13 @@
       <find>handleError</find>
       <find>ReadTranslation</find>
       <find>scanIgnoreWhitespace</find>
+      <find>PS.150.6</find>
+      <find>98269</find>
+      <find>98276</find>
+      <find>PS.34.17</find>
+      <find>\x</find>
+      <find>new</find>
+      <find>scanWhitespace</find>
     </findStrings>
   </component>
   <component name="GOROOT" path="/usr/local/Cellar/go/1.10.1/libexec" />
@@ -62,7 +98,10 @@
         <option value="$PROJECT_DIR$/json/json.go" />
         <option value="$PROJECT_DIR$/translations/kjv/00-translation.info" />
         <option value="$PROJECT_DIR$/translations/kjv.usfm" />
+        <option value="$PROJECT_DIR$/translations/esv.index.json" />
         <option value="$PROJECT_DIR$/usfm.go" />
+        <option value="$PROJECT_DIR$/parser/parser.go" />
+        <option value="$PROJECT_DIR$/parser/scanner.go" />
       </list>
     </option>
   </component>
@@ -77,6 +116,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -99,11 +139,16 @@
               <item name="usfm" type="462c0819:PsiDirectoryNode" />
               <item name="translations" type="462c0819:PsiDirectoryNode" />
             </path>
+            <path>
+              <item name="usfm" type="b2602c69:ProjectViewProjectNode" />
+              <item name="usfm" type="462c0819:PsiDirectoryNode" />
+              <item name="translations" type="462c0819:PsiDirectoryNode" />
+              <item name="esv" type="462c0819:PsiDirectoryNode" />
+            </path>
           </expand>
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -133,15 +178,32 @@
       </list>
     </option>
   </component>
+  <component name="RunManager">
+    <configuration name="go build usfm.go" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
+      <module name="usfm" />
+      <working_directory value="$PROJECT_DIR$/" />
+      <kind value="FILE" />
+      <filePath value="$PROJECT_DIR$/usfm.go" />
+      <package value="github.com/socceroos/usfm" />
+      <directory value="$PROJECT_DIR$/" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Go Build.go build usfm.go" />
+      </list>
+    </recent_temporary>
+  </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1680" height="1050" extended-state="0" />
+    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.1892552" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.1984127" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.5755102" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -149,7 +211,7 @@
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Database Changes" order="8" />
       <window_info anchor="bottom" id="Version Control" order="9" weight="0.5144385" />
-      <window_info active="true" anchor="bottom" id="Terminal" order="10" visible="true" weight="0.27653062" />
+      <window_info anchor="bottom" id="Terminal" order="10" weight="0.27653062" />
       <window_info anchor="bottom" id="Event Log" order="11" side_tool="true" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -171,61 +233,74 @@
       </list>
     </option>
   </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="RECENTLY_FILTERED_USER_GROUPS">
+                <collection />
+              </option>
+              <option name="RECENTLY_FILTERED_BRANCH_GROUPS">
+                <collection />
+              </option>
+              <option name="COLUMN_ORDER">
+                <list>
+                  <option value="0" />
+                  <option value="1" />
+                  <option value="2" />
+                  <option value="3" />
+                </list>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="XDebuggerManager">
+    <watches-manager>
+      <configuration name="GoApplicationRunConfiguration">
+        <watch expression="string(ch)" language="go" />
+      </configuration>
+    </watches-manager>
+  </component>
+  <component name="debuggerHistoryManager">
+    <expressions id="watch">
+      <expression>
+        <expression-string>string(ch)</expression-string>
+        <language-id>go</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+    </expressions>
+  </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/translations/1.index" />
     <entry file="file://$PROJECT_DIR$/translations/1/02-GENeng-web.usfm" />
     <entry file="file://$PROJECT_DIR$/usfm_test.go">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/translations/web/73-JHNeng-web.usfm">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
+    <entry file="file://$PROJECT_DIR$/translations/web/73-JHNeng-web.usfm" />
     <entry file="file://$PROJECT_DIR$/translations/web.index" />
-    <entry file="file://$PROJECT_DIR$/translations/web/92-1JNeng-web.usfm">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/translations/web/83-2THeng-web.usfm">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/translations/web/40-MALeng-web.usfm">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/translations/web/75-ROM-MOD-eng-web.usfm">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/translations/web/96-REVeng-web.usfm">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/translations/web/02-GENeng-web.usfm">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
+    <entry file="file://$PROJECT_DIR$/translations/web/92-1JNeng-web.usfm" />
+    <entry file="file://$PROJECT_DIR$/translations/web/83-2THeng-web.usfm" />
+    <entry file="file://$PROJECT_DIR$/translations/web/40-MALeng-web.usfm" />
+    <entry file="file://$PROJECT_DIR$/translations/web/75-ROM-MOD-eng-web.usfm" />
+    <entry file="file://$PROJECT_DIR$/translations/web/96-REVeng-web.usfm" />
+    <entry file="file://$PROJECT_DIR$/translations/web/02-GENeng-web.usfm" />
     <entry file="file://$PROJECT_DIR$/run.sh">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/translations/web/03-EXOeng-web.usfm">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/translations/kjv/00-translation.info">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="60">
-          <caret line="4" column="24" selection-start-line="4" selection-start-column="24" selection-end-line="4" selection-end-column="24" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/translations/web.usfm">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-2233" />
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/translations/web/03-EXOeng-web.usfm" />
+    <entry file="file://$PROJECT_DIR$/translations/kjv/00-translation.info" />
+    <entry file="file://$PROJECT_DIR$/translations/web.usfm" />
     <entry file="file://$PROJECT_DIR$/parser/parser_test.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-435" />
+        <state relative-caret-position="-951" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/web.index" />
-    <entry file="file://$PROJECT_DIR$/json/renderer.go">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/parser/token.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="465">
@@ -236,44 +311,16 @@
     <entry file="file://$PROJECT_DIR$/web.usfm" />
     <entry file="file://$PROJECT_DIR$/json/json.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="219">
-          <caret line="62" column="15" selection-start-line="62" selection-start-column="15" selection-end-line="62" selection-end-column="15" />
+        <state>
+          <caret line="111" selection-start-line="111" selection-end-line="111" />
         </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/parser/scanner.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-2731" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/translations/kjv.index" />
-    <entry file="file://$PROJECT_DIR$/translations/kjv/02-GENeng-kjv2006.usfm.temp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="90">
-          <caret line="6" column="5" selection-start-line="6" selection-start-column="5" selection-end-line="6" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/translations/kjv.index.json">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/parser/parser.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2655">
-          <caret line="181" column="23" selection-start-line="181" selection-start-column="3" selection-end-line="181" selection-end-column="23" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/translations/kjv/02-GENeng-kjv2006.usfm">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="120">
-          <caret line="8" column="130" selection-start-line="8" selection-start-column="78" selection-end-line="8" selection-end-column="130" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/translations/kjv/03-EXOeng-kjv2006.usfm.temp">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
+    <entry file="file://$PROJECT_DIR$/translations/kjv/02-GENeng-kjv2006.usfm.temp" />
+    <entry file="file://$PROJECT_DIR$/translations/kjv.index.json" />
+    <entry file="file://$PROJECT_DIR$/translations/kjv/02-GENeng-kjv2006.usfm" />
+    <entry file="file://$PROJECT_DIR$/translations/kjv/03-EXOeng-kjv2006.usfm.temp" />
     <entry file="file:///usr/local/Cellar/go/1.10.1/libexec/src/os/file.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="151">
@@ -281,17 +328,64 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/translations/kjv.usfm">
+    <entry file="file://$PROJECT_DIR$/translations/kjv.usfm" />
+    <entry file="file://$PROJECT_DIR$/json/renderer.go">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/parser/content.go">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/parser/osis.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="20" column="52" selection-start-line="20" selection-start-column="52" selection-end-line="20" selection-end-column="52" />
+        <state relative-caret-position="-729" />
+      </provider>
+    </entry>
+    <entry file="file:///usr/local/Cellar/go/1.10.1/libexec/src/unicode/graphic.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="232">
+          <caret line="125" column="5" selection-start-line="125" selection-start-column="5" selection-end-line="125" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/translations/esv.index.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="100">
+          <caret line="3287" column="21" selection-start-line="3287" selection-start-column="21" selection-end-line="3287" selection-end-column="21" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/translations/esv/20-PSAesv.usfm">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="180">
+          <caret line="12" column="43" selection-start-line="12" selection-start-column="43" selection-end-line="12" selection-end-column="43" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/translations/esv/20-PSAesv.usfm.temp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="86">
+          <caret line="12" column="42" lean-forward="true" selection-start-line="12" selection-start-column="42" selection-end-line="12" selection-end-column="42" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/parser/parser.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="72">
+          <caret line="95" column="46" selection-start-line="95" selection-start-column="46" selection-end-line="95" selection-end-column="46" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/parser/scanner.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="221">
+          <caret line="119" column="32" selection-start-line="119" selection-start-column="32" selection-end-line="119" selection-end-column="32" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/usfm.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="276">
-          <caret line="171" column="3" selection-start-line="171" selection-start-column="3" selection-end-line="171" selection-end-column="3" />
+        <state relative-caret-position="-229">
+          <caret line="153" lean-forward="true" selection-start-line="153" selection-end-line="153" />
         </state>
       </provider>
     </entry>
