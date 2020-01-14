@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -137,8 +138,12 @@ func formatContent(filePath string, writer *os.File) string {
 	// Replace ¶ with empty string
 	content = strings.Replace(content, "¶", "", -1)
 	content = strings.Replace(content, "  ", " ", -1)
-	content = removeWTag(content)
-	content = removeWPlusTag(content)
+	content = removeEnclosedTag("x", content)
+	content = removeWTag("w", content)
+	content = removeWTag("w+", content)
+
+	//content = removeWTag(content)
+	//content = removeWPlusTag(content)
 
 	writer.Write([]byte(content))
 	tempUSFM.Write([]byte(content))
@@ -150,8 +155,9 @@ func formatContent(filePath string, writer *os.File) string {
 	return newFilePath
 }
 
-func removeWTag(content string) string {
-	start, end := "\\w ", "\\w*" // just replace these with whatever you like...
+func removeWTag(tag string, content string) string {
+	start := fmt.Sprintf("\\%s ", tag)
+	end := fmt.Sprintf("\\%s*", tag)
 	sSplits := strings.Split(content, start)
 	result := ""
 
@@ -162,7 +168,7 @@ func removeWTag(content string) string {
 			ixSplit := strings.Index(subStr, "|")
 			if ixEnd != -1 && ixSplit != -1 {
 				result += subStr[0:ixSplit]
-				result += subStr[ixEnd+3:(len(subStr))]
+				result += subStr[ixEnd+len(end):(len(subStr))]
 			} else {
 				result += subStr
 			}
@@ -173,19 +179,17 @@ func removeWTag(content string) string {
 	return result
 }
 
-func removeWPlusTag(content string) string {
-	start, end := "\\+w ", "\\+w*" // just replace these with whatever you like...
+func removeEnclosedTag(tag string, content string) string {
+	start := fmt.Sprintf("\\%s ", tag)
+	end := fmt.Sprintf("\\%s*", tag)
 	sSplits := strings.Split(content, start)
 	result := ""
 
 	if len(sSplits) > 1 { // n splits = 1 means start char not found!
 		for _, subStr := range sSplits { // check each substring for end
-
 			ixEnd := strings.Index(subStr, end)
-			ixSplit := strings.Index(subStr, "|")
-			if ixEnd != -1 && ixSplit != -1 {
-				result += subStr[0:ixSplit]
-				result += subStr[ixEnd+4:(len(subStr))]
+			if ixEnd != -1 {
+				result += subStr[ixEnd+len(end):(len(subStr))]
 			} else {
 				result += subStr
 			}
@@ -195,6 +199,8 @@ func removeWPlusTag(content string) string {
 	}
 	return result
 }
+
+
 
 // handleError if error not null, returns the format string
 func handleError(err error, format string, v ...interface{}) {
