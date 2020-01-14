@@ -49,8 +49,10 @@ func (s *Scanner) peek(i int) rune {
 
 // unread places the previously read rune back on the reader.
 func (s *Scanner) unread() {
-	_ = s.r.UnreadRune()
-	s.Pos = s.Pos - s.LastSize
+	err := s.r.UnreadRune()
+	if err == nil {
+		s.Pos = s.Pos - s.LastSize
+	}
 }
 
 // Scan returns the next token, literal value and position.
@@ -80,10 +82,10 @@ func (s *Scanner) Scan() (tok Token, lit string, pos int) {
 
 	switch ch {
 	case eof:
-		return EOF, "", s.Pos // - s.LastSize
+		return EOF, "", s.Pos - s.LastSize
 	}
 
-	return Illegal, string(ch), s.Pos // - s.LastSize
+	return Illegal, string(ch), s.Pos - s.LastSize
 }
 
 // scanMarker consumes the current rune and read whole marker
@@ -110,14 +112,15 @@ func (s *Scanner) scanMarker() (tok Token, lit string, pos int) {
 		// Handle largest marker like \imte1
 		// anything beyond that is illegal
 		if i == 6 {
-			return Illegal, buf.String(), s.Pos // - s.LastSize
+			return Illegal, buf.String(), s.Pos - s.LastSize
 		}
 	}
 
 	fmt.Printf("\nPosition: %v    Last Read Size: %v    Marker Buffer Length: %v    Marker: %v", s.Pos, s.LastSize, buf.Len(), buf.String())
 	fmt.Printf("\nMarker %v was scanned to %v byte position and we're going to calculate that it starts at %v\n", buf.String(), s.Pos, (s.Pos - (buf.Len() - 1)))
 
-	position := s.Pos // - size
+	size := buf.Len() - 1
+	position := s.Pos - size
 
 	switch strings.ToUpper(buf.String()) {
 	case `\ID`:
@@ -182,7 +185,7 @@ func (s *Scanner) scanText() (tok Token, lit string, pos int) {
 		}
 	}
 
-	return Text, buf.String(), s.Pos // - buf.Len()
+	return Text, buf.String(), s.Pos - buf.Len()
 }
 
 // scanNumber consumes the current rune and all contiguous number runes.
@@ -203,7 +206,7 @@ func (s *Scanner) scanNumber() (tok Token, lit string, pos int) {
 		}
 	}
 
-	return Number, buf.String(), s.Pos // - buf.Len()
+	return Number, buf.String(), s.Pos - buf.Len()
 }
 
 // isLetter returns true if the rune is backslash (\)
