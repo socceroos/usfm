@@ -3,7 +3,6 @@ package parser
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"io"
 	"strings"
 	"unicode"
@@ -116,10 +115,10 @@ func (s *Scanner) scanMarker() (tok Token, lit string, pos int) {
 		}
 	}
 
-	fmt.Printf("\nPosition: %v    Last Read Size: %v    Marker Buffer Length: %v    Marker: %v", s.Pos, s.LastSize, buf.Len(), buf.String())
-	fmt.Printf("\nMarker %v was scanned to %v byte position and we're going to calculate that it starts at %v\n", buf.String(), s.Pos, (s.Pos - (buf.Len() - 1)))
+	//fmt.Printf("\nPosition: %v    Last Read Size: %v    Marker Buffer Length: %v    Marker: %v", s.Pos, s.LastSize, buf.Len(), buf.String())
+	//fmt.Printf("\nMarker %v was scanned to %v byte position and we're going to calculate that it starts at %v\n", buf.String(), s.Pos, (s.Pos - (buf.Len() - 1)))
 
-	size := buf.Len() - 1
+	size := buf.Len()
 	position := s.Pos - size
 
 	switch strings.ToUpper(buf.String()) {
