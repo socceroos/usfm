@@ -140,7 +140,7 @@ func formatContent(filePath string, writer *os.File) string {
 	content = strings.Replace(content, "  ", " ", -1)
 	content = removeEnclosedTag("x", content)
 	content = removeWTag("w", content)
-	content = removeWTag("w+", content)
+	content = removeWTag("+w", content)
 
 	//content = removeWTag(content)
 	//content = removeWPlusTag(content)
