@@ -138,7 +138,7 @@ func formatContent(filePath string, writer *os.File) string {
 	// Replace ¶ with empty string
 	content = strings.Replace(content, "¶", "", -1)
 	content = strings.Replace(content, "  ", " ", -1)
-	content = removeEnclosedTag("x", content)
+	//content = removeEnclosedTag("x", content)
 	content = removeWTag("w", content)
 	content = removeWTag("w+", content)
 
@@ -168,7 +168,7 @@ func removeWTag(tag string, content string) string {
 			ixSplit := strings.Index(subStr, "|")
 			if ixEnd != -1 && ixSplit != -1 {
 				result += subStr[0:ixSplit]
-				result += subStr[ixEnd+len(end):(len(subStr))]
+				result += subStr[ixEnd+len(end) : (len(subStr))]
 			} else {
 				result += subStr
 			}
@@ -189,7 +189,7 @@ func removeEnclosedTag(tag string, content string) string {
 		for _, subStr := range sSplits { // check each substring for end
 			ixEnd := strings.Index(subStr, end)
 			if ixEnd != -1 {
-				result += subStr[ixEnd+len(end):(len(subStr))]
+				result += subStr[ixEnd+len(end) : (len(subStr))]
 			} else {
 				result += subStr
 			}
@@ -199,8 +199,6 @@ func removeEnclosedTag(tag string, content string) string {
 	}
 	return result
 }
-
-
 
 // handleError if error not null, returns the format string
 func handleError(err error, format string, v ...interface{}) {
